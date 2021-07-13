@@ -1,4 +1,4 @@
-Ussa1976
+USSA1976
 ========
 
 |PyPI| |Python Version| |License|
