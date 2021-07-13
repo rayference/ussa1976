@@ -48,7 +48,7 @@ Requirements
 Installation
 ------------
 
-You can install *Ussa1976* via pip_ from PyPI_:
+You can install *USSA1976* via pip_ from PyPI_:
 
 .. code:: console
 
@@ -72,7 +72,7 @@ License
 -------
 
 Distributed under the terms of the `MIT license`_,
-*Ussa1976* is free and open source software.
+*USSA1976* is free and open source software.
 
 
 Issues
