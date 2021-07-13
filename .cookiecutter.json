@@ -1,0 +1,11 @@
+{
+  "_template": "gh:cjolowicz/cookiecutter-hypermodern-python",
+  "author": "Yvan Nollet",
+  "email": "yvan.nollet@rayference.eu",
+  "friendly_name": "Ussa1976",
+  "github_user": "nollety",
+  "license": "MIT",
+  "package_name": "ussa1976",
+  "project_name": "ussa1976",
+  "version": "0.0.0"
+}
