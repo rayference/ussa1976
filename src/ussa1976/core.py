@@ -4,7 +4,7 @@ US Standard Atmosphere 1976 thermophysical model, according to
 """
 
 from datetime import datetime
-from typing import List, Optional, Union, Tuple
+from typing import List, Optional, Union, Tuple, Callable
 
 import numpy as np
 import numpy.ma as ma
