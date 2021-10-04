@@ -2,12 +2,14 @@
 US Standard Atmosphere 1976 thermophysical model, according to
 :cite:`NASA1976USStandardAtmosphere`.
 """
-
+import typing as t
 from datetime import datetime
-from typing import List, Optional, Union, Tuple, Callable
+from typing import List, Optional, Tuple, Union
 
 import numpy as np
 import numpy.ma as ma
+import numpy.typing as npt
+import pint
 import xarray as xr
 from scipy.integrate import cumtrapz
 from scipy.interpolate import interp1d
@@ -23,7 +25,7 @@ from ussa1976 import __version__, ureg
 
 @ureg.wraps(ret=None, args="m", strict=False)
 def make(
-    levels: Union[ureg.Quantity, np.ndarray] = ureg.Quantity(
+    levels: Union[ureg.Quantity, npt.NDArray[np.float64]] = ureg.Quantity(
         np.linspace(0.0, 1e5, 51), "m"
     )
 ) -> xr.Dataset:
@@ -393,7 +395,8 @@ DIMS = {
 
 @ureg.wraps(ret=None, args=("m", None), strict=False)
 def create(
-    z: Union[ureg.Quantity, np.ndarray], variables: Optional[List[str]] = None
+    z: Union[ureg.Quantity, npt.NDArray[np.float64]],
+    variables: Optional[List[str]] = None,
 ) -> xr.Dataset:
     """Creates a US Standard Atmosphere 1976 data set.
 
@@ -451,12 +454,12 @@ def create(
         if var not in variables:
             names.append(var)
 
-    return ds.drop_vars(names)
+    return ds.drop_vars(names)  # type: ignore
 
 
 def compute_low_altitude(
-    data_set: xr.Dataset, mask: xr.DataArray = None, inplace: bool = False
-) -> Optional[xr.Dataset]:
+    data_set: xr.Dataset, mask: t.Optional[xr.DataArray] = None, inplace: bool = False
+) -> t.Optional[xr.Dataset]:
     """Computes the US Standard Atmosphere 1976 in the low-altitude region.
 
     Parameters
@@ -536,11 +539,13 @@ def compute_low_altitude(
 
     if not inplace:
         return ds
+    else:
+        return None
 
 
 def compute_high_altitude(
-    data_set: xr.Dataset, mask: xr.DataArray = None, inplace: bool = False
-) -> Optional[xr.Dataset]:
+    data_set: xr.Dataset, mask: t.Optional[xr.DataArray] = None, inplace: bool = False
+) -> t.Optional[xr.Dataset]:
     """Computes the US Standard Atmosphere 1976 in the high-altitude region.
 
     Parameters
@@ -614,10 +619,12 @@ def compute_high_altitude(
 
     if not inplace:
         return ds
+    else:
+        return None
 
 
 @ureg.wraps(ret=None, args="m", strict=False)
-def init_data_set(z: Union[ureg.Quantity, np.ndarray]) -> xr.Dataset:
+def init_data_set(z: Union[ureg.Quantity, npt.NDArray[np.float64]]) -> xr.Dataset:
     """Initialises the data set.
 
     Parameters
@@ -664,10 +671,12 @@ def init_data_set(z: Union[ureg.Quantity, np.ndarray]) -> xr.Dataset:
         "references": "U.S. Standard Atmosphere, 1976, NASA-TM-X-74335, NOAA-S/T-76-1562",
     }
 
-    return xr.Dataset(data_vars, coords, attrs)
+    return xr.Dataset(data_vars, coords, attrs)  # type: ignore
 
 
-def compute_levels_temperature_and_pressure_low_altitude() -> Tuple[np.ndarray]:
+def compute_levels_temperature_and_pressure_low_altitude() -> Tuple[
+    npt.NDArray[np.float64], npt.NDArray[np.float64]
+]:
     """Computes the temperature and the pressure values at the 8 levels
     of the low-altitude model.
 
@@ -690,13 +699,13 @@ def compute_levels_temperature_and_pressure_low_altitude() -> Tuple[np.ndarray]:
                 H[i], H[i - 1], pb[i - 1], tb[i - 1], LK[i - 1]
             )
         pb.append(p_next)
-    return tb, pb
+    return np.array(tb), np.array(pb)
 
 
 @ureg.wraps(ret=None, args="km", strict=False)
 def compute_number_densities_high_altitude(
-    altitudes: Union[ureg.Quantity, np.ndarray]
-) -> np.ndarray:
+    altitudes: Union[ureg.Quantity, npt.NDArray[np.float64]]
+) -> t.Dict[str, npt.NDArray[np.float64]]:
     """Computes the number density of the individual species in the
     high-altitude region.
 
@@ -732,7 +741,7 @@ def compute_number_densities_high_altitude(
     """
 
     # altitude grid
-    grid = np.concatenate(
+    grid = np.concatenate(  # type: ignore
         (
             np.linspace(start=Z7, stop=150.0, num=640, endpoint=False),
             np.geomspace(start=150.0, stop=Z12, num=100, endpoint=True),
@@ -825,7 +834,7 @@ def compute_number_densities_high_altitude(
     _tau = tau_function(grid[grid > 500.0], below_500=False)
     n_above_500 = H_11 * np.power(T11 / t[grid > 500.0], 1 + alpha) * np.exp(-_tau)
 
-    n_grid["H"] = np.concatenate((n_below_500, n_above_500))
+    n_grid["H"] = np.concatenate((n_below_500, n_above_500))  # type: ignore
 
     n = {
         s: log_interp1d(grid, n_grid[s])(altitudes)
@@ -833,22 +842,19 @@ def compute_number_densities_high_altitude(
     }
 
     # Below 150 km, the number density of atomic hydrogen is zero.
-    n["H"] = np.concatenate(
-        (
-            np.zeros(len(altitudes[altitudes < 150.0])),
-            log_interp1d(grid[grid >= 150.0], n_grid["H"])(
-                altitudes[altitudes >= 150.0]
-            ),
-        )
+    n_h_below_150 = np.zeros(len(altitudes[altitudes < 150.0]))
+    n_h_above_150 = log_interp1d(grid[grid >= 150.0], n_grid["H"])(
+        altitudes[altitudes >= 150.0]
     )
+    n["H"] = np.concatenate((n_h_below_150, n_h_above_150))  # type: ignore
 
     return n
 
 
 @ureg.wraps(ret=None, args="km", strict=False)
 def compute_mean_molar_mass_high_altitude(
-    z: Union[ureg.Quantity, np.ndarray]
-) -> np.ndarray:
+    z: Union[ureg.Quantity, npt.NDArray[np.float64], float]
+) -> npt.NDArray[np.float64]:
     """Computes the mean molar mass in the high-altitude region.
 
     Parameters
@@ -861,13 +867,13 @@ def compute_mean_molar_mass_high_altitude(
     :class:`~numpy.ndarray`
         Mean molar mass [kg/mol].
     """
-    return np.where(z <= 100.0, M0, M["N2"])
+    return np.array(np.where(z <= 100.0, M0, M["N2"]))
 
 
 @ureg.wraps(ret=None, args="km", strict=False)
 def compute_temperature_high_altitude(
-    altitude: Union[ureg.Quantity, np.ndarray]
-) -> np.ndarray:
+    altitude: Union[ureg.Quantity, npt.NDArray[np.float64], float]
+) -> npt.NDArray[np.float64]:
     """Computes the temperature in the high-altitude region.
 
     Parameters
@@ -885,33 +891,39 @@ def compute_temperature_high_altitude(
     b = -19.9429  # km
     tc = 263.1905  # K
 
-    def t(z):
+    def t(z: float) -> float:
         r"""Compute the temperature at a given altitude.
-        Parameter ``z`` (float):
+
+        Parameters
+        ----------
+        z: float
             Altitude [km].
-        Returns → float:
+
+        Returns
+        -------
+        float
             Temperature [K].
         """
         if Z7 <= z <= Z8:
             return T7
         elif Z8 < z <= Z9:
-            return tc + a * np.sqrt(1.0 - np.power((z - Z8) / b, 2.0))
+            return tc + a * float(np.sqrt(1.0 - np.power((z - Z8) / b, 2.0)))
         elif Z9 < z <= Z10:
             return T9 + LK9 * (z - Z9)
         elif Z10 < z <= Z12:
-            return TINF - (TINF - T10) * np.exp(
-                -LAMBDA * (z - Z10) * (r0 + Z10) / (r0 + z)
+            return TINF - (TINF - T10) * float(
+                np.exp(-LAMBDA * (z - Z10) * (r0 + Z10) / (r0 + z))
             )
         else:
             raise ValueError("altitude value is out of range")
 
-    return np.vectorize(t)(altitude)
+    return np.array(np.vectorize(t)(altitude))
 
 
 @ureg.wraps(ret=None, args="km", strict=False)
 def compute_temperature_gradient_high_altitude(
-    altitude: Union[ureg.Quantity, np.ndarray]
-) -> np.ndarray:
+    altitude: Union[ureg.Quantity, npt.NDArray[np.float64]]
+) -> npt.NDArray[np.float64]:
     """Computes the temperature gradient in the high-altitude region.
 
     Parameters
@@ -943,7 +955,7 @@ def compute_temperature_gradient_high_altitude(
         if Z7 <= z <= Z8:
             return LK7
         elif Z8 < z <= Z9:
-            return -a / b * ((z - Z8) / b) / np.sqrt(1 - np.square((z - Z8) / b))
+            return -a / b * ((z - Z8) / b) / float(np.sqrt(1 - np.square((z - Z8) / b)))
         elif Z9 < z <= Z10:
             return LK9
         elif Z10 < z <= Z12:
@@ -951,22 +963,23 @@ def compute_temperature_gradient_high_altitude(
             return (
                 LAMBDA
                 * (TINF - T10)
-                * np.square((R0 + Z10) / (R0 + z))
-                * np.exp(-LAMBDA * zeta)
+                * float(np.square((R0 + Z10) / (R0 + z)))
+                * float(np.exp(-LAMBDA * zeta))
             )
+
         else:
             raise ValueError(f"altitude z out of range, should be in " f"[{Z7}, {Z12}]")
 
-    return np.vectorize(gradient)(altitude) / 1e3  # converts K/km to K/m
+    return np.array(np.vectorize(gradient)(altitude) / 1e3)  # converts K/km to K/m
 
 
 @ureg.wraps(ret=None, args=("m^-3", "K", "m^-1*s^-1", "m^-1*s^-1"), strict=False)
 def thermal_diffusion_coefficient(
-    background: Union[ureg.Quantity, np.ndarray],
-    temperature: Union[ureg.Quantity, np.ndarray],
-    a: Union[ureg.Quantity, np.ndarray],
-    b: Union[ureg.Quantity, np.ndarray],
-) -> np.ndarray:
+    background: Union[ureg.Quantity, npt.NDArray[np.float64]],
+    temperature: Union[ureg.Quantity, npt.NDArray[np.float64]],
+    a: Union[ureg.Quantity, float],
+    b: Union[ureg.Quantity, float],
+) -> npt.NDArray[np.float64]:
     """Computes the thermal diffusion coefficient values in the
     high-altitude region.
 
@@ -989,11 +1002,11 @@ def thermal_diffusion_coefficient(
     :class:`~numpy.ndarray`
         Values of the thermal diffusion coefficient [m^2/s].
     """
-    return (a / background) * np.power(temperature / 273.15, b)
+    return np.array((a / background) * np.power(temperature / 273.15, b))
 
 
 @ureg.wraps(ret=None, args="km", strict=False)
-def eddy_diffusion_coefficient(z: np.ndarray) -> np.ndarray:
+def eddy_diffusion_coefficient(z: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
     """Computes the values of the Eddy diffusion coefficient in the
     high-altitude region.
 
@@ -1010,8 +1023,10 @@ def eddy_diffusion_coefficient(z: np.ndarray) -> np.ndarray:
     :class:`~numpy.ndarray`
         Eddy diffusion coefficient values [m^2/s].
     """
-    return np.where(
-        z < 95.0, K_7, K_7 * np.exp(1.0 - (400.0 / (400.0 - np.square(z - 95.0))))
+    return np.array(
+        np.where(
+            z < 95.0, K_7, K_7 * np.exp(1.0 - (400.0 / (400.0 - np.square(z - 95.0))))
+        )
     )
 
 
@@ -1021,15 +1036,15 @@ def eddy_diffusion_coefficient(z: np.ndarray) -> np.ndarray:
     strict=False,
 )
 def f_below_115_km(
-    g: Union[np.ndarray, float],
-    t: Union[np.ndarray, float],
-    dt_dz: Union[np.ndarray, float],
-    m: float,
+    g: npt.NDArray[np.float64],
+    t: npt.NDArray[np.float64],
+    dt_dz: npt.NDArray[np.float64],
+    m: t.Union[npt.NDArray[np.float64], float],
     mi: float,
     alpha: float,
-    d: Union[np.ndarray, float],
-    k: Union[np.ndarray, float],
-) -> np.ndarray:
+    d: npt.NDArray[np.float64],
+    k: npt.NDArray[np.float64],
+) -> npt.NDArray[np.float64]:
     """Evaluates function f below 115 km altitude.
 
     Evaluates the function :math:`f` defined by equation (36) in
@@ -1069,17 +1084,19 @@ def f_below_115_km(
     :class:`~numpy.ndarray`
         Values of the function f at the different altitudes [m^-1].
     """
-    return (g / (R * t)) * (d / (d + k)) * (mi + (m * k) / d + (alpha * R * dt_dz) / g)
+    return np.array(
+        (g / (R * t)) * (d / (d + k)) * (mi + (m * k) / d + (alpha * R * dt_dz) / g)  # type: ignore
+    )
 
 
 @ureg.wraps(ret=None, args=("m/s^2", "K", "K/m", "kg/mol", None), strict=False)
 def f_above_115_km(
-    g: Union[np.ndarray, float],
-    t: Union[np.ndarray, float],
-    dt_dz: Union[np.ndarray, float],
+    g: npt.NDArray[np.float64],
+    t: npt.NDArray[np.float64],
+    dt_dz: npt.NDArray[np.float64],
     mi: float,
     alpha: float,
-) -> np.ndarray:
+) -> npt.NDArray[np.float64]:
     """Evaluates the function :math:`f` defined by equation (36) in
     :cite:`NASA1976USStandardAtmosphere` in the altitude region :math:`115 <
     z <= 1000` km.
@@ -1106,7 +1123,7 @@ def f_above_115_km(
     :class:`~numpy.ndarray`
         Values of the function f at the different altitudes [m^-1].
     """
-    return (g / (R * t)) * (mi + ((alpha * R) / g) * dt_dz)
+    return np.array((g / (R * t)) * (mi + ((alpha * R) / g) * dt_dz))
 
 
 @ureg.wraps(
@@ -1116,14 +1133,14 @@ def f_above_115_km(
 )
 def thermal_diffusion_term(
     species: str,
-    grid: np.ndarray,
-    g: np.ndarray,
-    t: np.ndarray,
-    dt_dz: np.ndarray,
-    m: np.ndarray,
-    d: np.ndarray,
-    k: np.ndarray,
-) -> np.ndarray:
+    grid: npt.NDArray[np.float64],
+    g: npt.NDArray[np.float64],
+    t: npt.NDArray[np.float64],
+    dt_dz: npt.NDArray[np.float64],
+    m: npt.NDArray[np.float64],
+    d: npt.NDArray[np.float64],
+    k: npt.NDArray[np.float64],
+) -> npt.NDArray[np.float64]:
     """Computes the thermal diffusion term of a given species in the
     high-altitude region.
 
@@ -1175,18 +1192,19 @@ def thermal_diffusion_term(
         M[species],
         ALPHA[species],
     )
-    return np.concatenate((fo1, fo2))
+    fo_concat = np.concatenate((fo1, fo2))  # type: ignore
+    return np.array(fo_concat)
 
 
 @ureg.wraps(ret=None, args=("km", "m/s^2", "K", "K/m", "m^2/s", "m^2/s"), strict=False)
 def thermal_diffusion_term_atomic_oxygen(
-    grid: np.ndarray,
-    g: np.ndarray,
-    t: np.ndarray,
-    dt_dz: np.ndarray,
-    d: np.ndarray,
-    k: np.ndarray,
-) -> np.ndarray:
+    grid: npt.NDArray[np.float64],
+    g: npt.NDArray[np.float64],
+    t: npt.NDArray[np.float64],
+    dt_dz: npt.NDArray[np.float64],
+    d: npt.NDArray[np.float64],
+    k: npt.NDArray[np.float64],
+) -> npt.NDArray[np.float64]:
     """Computes the thermal diffusion term of atomic oxygen in the
     high-altitude region.
 
@@ -1215,29 +1233,29 @@ def thermal_diffusion_term_atomic_oxygen(
     :class:`~numpy.ndarray`
         Values of the thermal diffusion term [km^-1].
     """
-    mask1, mask2 = grid < 115.0, grid >= 115.0
+    mask1, mask2 = grid < 115.0, grid >= 115.0  # type: ignore
     x1 = f_below_115_km(
         g[mask1], t[mask1], dt_dz[mask1], M["N2"], M["O"], ALPHA["O"], d, k
     )
     x2 = f_above_115_km(
         g[grid >= 115.0], t[grid >= 115.0], dt_dz[grid >= 115.0], M["O"], ALPHA["O"]
     )
-
-    return np.concatenate((x1, x2))
+    x_concat = np.concatenate((x1, x2))  # type: ignore
+    return np.array(x_concat)
 
 
 @ureg.wraps(
     ret=None, args=("m", "km^-3", "km^-3", "km", "km", "km^-3", "km^-3"), strict=False
 )
 def velocity_term_hump(
-    z: Union[np.ndarray, float],
+    z: npt.NDArray[np.float64],
     q1: float,
     q2: float,
     u1: float,
     u2: float,
     w1: float,
     w2: float,
-) -> Union[float, np.ndarray]:
+) -> npt.NDArray[np.float64]:
     """Computes the transport term given by equation (37) in
     :cite:`NASA1976USStandardAtmosphere`.
 
@@ -1271,15 +1289,20 @@ def velocity_term_hump(
         Values of the transport term [km^-1].
     """
     # @formatter:off
-    return (
-        q1 * np.square(z - u1) * np.exp(-w1 * np.power(z - u1, 3.0))
-        + q2 * np.square(u2 - z) * np.exp(-w2 * np.power(u2 - z, 3.0))
-    ) / 1e3  # the factor 1e3 converts m^-1 to km^-1
+    return np.array(
+        (
+            q1 * np.square(z - u1) * np.exp(-w1 * np.power(z - u1, 3.0))
+            + q2 * np.square(u2 - z) * np.exp(-w2 * np.power(u2 - z, 3.0))
+        )
+        / 1e3
+    )  # the factor 1e3 converts m^-1 to km^-1
     # @formatter:on
 
 
 @ureg.wraps(ret=None, args=("km", "km^-3", "km^-3", "km^-3"), strict=False)
-def velocity_term_no_hump(z: Union[np.ndarray, float], q1: float, u1: float, w1: float):
+def velocity_term_no_hump(
+    z: npt.NDArray[np.float64], q1: float, u1: float, w1: float
+) -> npt.NDArray[np.float64]:
     """Computes the transport term given by equation (37) in
     :cite:`NASA1976USStandardAtmosphere` where the second term is zero.
 
@@ -1306,14 +1329,16 @@ def velocity_term_no_hump(z: Union[np.ndarray, float], q1: float, u1: float, w1:
         Values of the transport term [km^-1].
     """
     # @formatter:off
-    return (
-        q1 * np.square(z - u1) * np.exp(-w1 * np.power(z - u1, 3.0))
-    ) / 1e3  # the factor 1e3 converts m^-1 to km^-1
+    return np.array(
+        (q1 * np.square(z - u1) * np.exp(-w1 * np.power(z - u1, 3.0))) / 1e3
+    )  # the factor 1e3 converts m^-1 to km^-1
     # @formatter:on
 
 
 @ureg.wraps(ret=None, args=(None, "km"), strict=False)
-def velocity_term(species: str, grid: np.ndarray) -> np.ndarray:
+def velocity_term(
+    species: str, grid: npt.NDArray[np.float64]
+) -> npt.NDArray[np.float64]:
     r"""Computes the velocity term of a given species in the
     high-altitude region.
 
@@ -1340,12 +1365,14 @@ def velocity_term(species: str, grid: np.ndarray) -> np.ndarray:
     # Above 150 km, the velocity term is neglected, as indicated at p. 14 in
     # :cite:`NASA1976USStandardAtmosphere`
     x2 = np.zeros(len(grid[grid > 150.0]))
-
-    return np.concatenate((x1, x2))
+    x_concat = np.concatenate((x1, x2))  # type: ignore
+    return np.array(x_concat)
 
 
 @ureg.wraps(ret=None, args="km", strict=False)
-def velocity_term_atomic_oxygen(grid: np.ndarray) -> np.ndarray:
+def velocity_term_atomic_oxygen(
+    grid: npt.NDArray[np.float64],
+) -> npt.NDArray[np.float64]:
     """Computes the velocity term of atomic oxygen in the high-altitude region.
 
     Parameters
@@ -1358,7 +1385,7 @@ def velocity_term_atomic_oxygen(grid: np.ndarray) -> np.ndarray:
     :class:`~numpy.ndarray`
         Values of the velocity term [km^-1].
     """
-    mask1, mask2 = grid <= 150.0, grid > 150.0
+    mask1, mask2 = grid <= 150.0, grid > 150.0  # type: ignore
     x1 = np.where(
         grid[mask1] <= 97.0,
         velocity_term_hump(
@@ -1368,13 +1395,14 @@ def velocity_term_atomic_oxygen(grid: np.ndarray) -> np.ndarray:
     )
 
     x2 = np.zeros(len(grid[mask2]))
-    return np.concatenate((x1, x2))
+    x_concat = np.concatenate((x1, x2))  # type: ignore
+    return np.array(x_concat)
 
 
 @ureg.wraps(ret=None, args=("km", None), strict=False)
 def tau_function(
-    z_grid: Union[ureg.Quantity, np.ndarray], below_500: bool = True
-) -> np.ndarray:
+    z_grid: Union[ureg.Quantity, npt.NDArray[np.float64]], below_500: bool = True
+) -> npt.NDArray[np.float64]:
     """Computes the integral given by equation (40) in
     :cite:`NASA1976USStandardAtmosphere` at each point of an altitude grid.
 
@@ -1406,12 +1434,14 @@ def tau_function(
     # converts z_grid to meters
 
     if below_500:
-        return integral_values[::-1]
+        return np.array(integral_values[::-1])
     else:
-        return integral_values
+        return np.array(integral_values)
 
 
-def log_interp1d(x: np.ndarray, y: np.ndarray) -> Callable:
+def log_interp1d(
+    x: npt.NDArray[np.float64], y: npt.NDArray[np.float64]
+) -> t.Callable[[npt.NDArray[np.float64]], npt.NDArray[np.float64]]:
     """Computes the linear interpolation of :math:`y(x)` in logarithmic space.
 
     Parameters
@@ -1433,18 +1463,18 @@ def log_interp1d(x: np.ndarray, y: np.ndarray) -> Callable:
     logy = np.log10(y)
     lin_interp = interp1d(logx, logy, kind="linear")
 
-    def log_interp(z):
-        return np.power(10.0, lin_interp(np.log10(z)))
+    def log_interp(z: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
+        return np.array(np.power(10.0, lin_interp(np.log10(z))))
 
     return log_interp
 
 
 @ureg.wraps(ret=None, args=("m", "Pa", "K"), strict=False)
 def compute_pressure_low_altitude(
-    h: Union[ureg.Quantity, np.ndarray],
-    pb: Union[ureg.Quantity, np.ndarray],
-    tb: Union[ureg.Quantity, np.ndarray],
-) -> np.ndarray:
+    h: Union[ureg.Quantity, npt.NDArray[np.float64]],
+    pb: Union[ureg.Quantity, npt.NDArray[np.float64]],
+    tb: Union[ureg.Quantity, npt.NDArray[np.float64]],
+) -> npt.NDArray[np.float64]:
     """Computes the pressure in the low-altitude region.
 
     Parameters
@@ -1464,7 +1494,7 @@ def compute_pressure_low_altitude(
         Pressure values [Pa].
     """
     # we create a mask for each layer
-    masks = [ma.masked_inside(h, H[i - 1], H[i]).mask for i in range(1, 8)]
+    masks = [ma.masked_inside(h, H[i - 1], H[i]).mask for i in range(1, 8)]  # type: ignore
 
     # for each layer, we evaluate the pressure based on whether the
     # temperature gradient is zero or not
@@ -1483,11 +1513,11 @@ def compute_pressure_low_altitude(
 
 @ureg.wraps(ret=None, args=("m", "m", "Pa", "K"), strict=False)
 def compute_pressure_low_altitude_zero_gradient(
-    h: Union[ureg.Quantity, float],
-    hb: Union[ureg.Quantity, float],
-    pb: Union[ureg.Quantity, float],
-    tb: Union[ureg.Quantity, float],
-) -> Union[ureg.Quantity, float]:
+    h: Union[ureg.Quantity, npt.NDArray[np.float64], float],
+    hb: Union[ureg.Quantity, npt.NDArray[np.float64], float],
+    pb: Union[ureg.Quantity, npt.NDArray[np.float64], float],
+    tb: Union[ureg.Quantity, npt.NDArray[np.float64], float],
+) -> npt.NDArray[np.float64]:
     """Computes the pressure in the low-altitude region when the temperature
     gradient is zero.
 
@@ -1510,17 +1540,17 @@ def compute_pressure_low_altitude_zero_gradient(
     :class:`~ureg.Quantity` or float
         Pressure [Pa].
     """
-    return pb * np.exp(-G0 * M0 * (h - hb) / (R * tb))
+    return np.array(pb * np.exp(-G0 * M0 * (h - hb) / (R * tb)))
 
 
 @ureg.wraps(ret=None, args=("m", "m", "Pa", "K", "K/m"), strict=False)
 def compute_pressure_low_altitude_non_zero_gradient(
-    h: Union[ureg.Quantity, float],
-    hb: Union[ureg.Quantity, float],
-    pb: Union[ureg.Quantity, float],
-    tb: Union[ureg.Quantity, float],
-    lkb: Union[ureg.Quantity, float],
-) -> Union[ureg.Quantity, float]:
+    h: Union[ureg.Quantity, npt.NDArray[np.float64], float],
+    hb: Union[ureg.Quantity, npt.NDArray[np.float64], float],
+    pb: Union[ureg.Quantity, npt.NDArray[np.float64], float],
+    tb: Union[ureg.Quantity, npt.NDArray[np.float64], float],
+    lkb: Union[ureg.Quantity, npt.NDArray[np.float64], float],
+) -> npt.NDArray[np.float64]:
     """Computes the pressure in the low-altitude region when the temperature
     gradient is non-zero.
 
@@ -1543,11 +1573,14 @@ def compute_pressure_low_altitude_non_zero_gradient(
     :class:`~ureg.Quantity` or float
         Pressure [Pa].
     """
-    return pb * np.power(tb / (tb + lkb * (h - hb)), G0 * M0 / (R * lkb))
+    return np.array(pb * np.power(tb / (tb + lkb * (h - hb)), G0 * M0 / (R * lkb)))
 
 
 @ureg.wraps(ret=None, args=("m", "K"), strict=False)
-def compute_temperature_low_altitude(h: np.ndarray, tb: np.ndarray) -> np.ndarray:
+def compute_temperature_low_altitude(
+    h: t.Union[pint.Quantity, npt.NDArray[np.float64]],
+    tb: t.Union[pint.Quantity, npt.NDArray[np.float64]],
+) -> npt.NDArray[np.float64]:
     """Computes the temperature in the low-altitude region.
 
     Parameters
@@ -1564,7 +1597,9 @@ def compute_temperature_low_altitude(h: np.ndarray, tb: np.ndarray) -> np.ndarra
         Temperature [K].
     """
     # we create a mask for each layer
-    masks = [ma.masked_inside(h, H[i - 1], H[i]).mask for i in range(1, 8)]
+    masks = [
+        ma.masked_inside(h, H[i - 1], H[i]).mask for i in range(1, 8)  # type: ignore
+    ]
 
     # for each layer, we evaluate the pressure based on whether the
     # temperature gradient is zero or not
@@ -1578,7 +1613,9 @@ def compute_temperature_low_altitude(h: np.ndarray, tb: np.ndarray) -> np.ndarra
 
 
 @ureg.wraps(ret=None, args="m", strict=False)
-def to_altitude(h: Union[np.ndarray, float]) -> Union[np.ndarray, float]:
+def to_altitude(
+    h: t.Union[pint.Quantity, npt.NDArray[np.float64]]
+) -> npt.NDArray[np.float64]:
     """Converts geopotential height to (geometric) altitude.
 
     Parameters
@@ -1591,11 +1628,13 @@ def to_altitude(h: Union[np.ndarray, float]) -> Union[np.ndarray, float]:
     :class:`~numpy.ndarray` or float
         Altitude [m]
     """
-    return R0 * h / (R0 - h)
+    return np.array(R0 * h / (R0 - h))
 
 
 @ureg.wraps(ret=None, args="m", strict=False)
-def to_geopotential_height(z: Union[np.ndarray, float]) -> Union[np.ndarray, float]:
+def to_geopotential_height(
+    z: t.Union[pint.Quantity, npt.NDArray[np.float64]]
+) -> npt.NDArray[np.float64]:
     """Converts altitude to geopotential height.
 
     Parameters
@@ -1608,11 +1647,13 @@ def to_geopotential_height(z: Union[np.ndarray, float]) -> Union[np.ndarray, flo
     :class:`~numpy.ndarray` or float
         Geopotential height [m]
     """
-    return R0 * z / (R0 + z)
+    return np.array(R0 * z / (R0 + z))
 
 
 @ureg.wraps(ret=None, args="m", strict=False)
-def compute_gravity(z: Union[np.ndarray, float]) -> Union[np.ndarray, float]:
+def compute_gravity(
+    z: t.Union[pint.Quantity, npt.NDArray[np.float64]]
+) -> npt.NDArray[np.float64]:
     """Computes the gravity.
 
     Parameters
@@ -1625,4 +1666,4 @@ def compute_gravity(z: Union[np.ndarray, float]) -> Union[np.ndarray, float]:
     :class:`~numpy.ndarray` or float
         Gravity [m/s^2].
     """
-    return G0 * np.power((R0 / (R0 + z)), 2.0)
+    return np.array(G0 * np.power((R0 / (R0 + z)), 2.0))

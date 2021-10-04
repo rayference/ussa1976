@@ -1,29 +1,29 @@
 """Test cases for the core module."""
 import numpy as np
+import numpy.typing as npt
 import pytest
+import xarray as xr
 
-from ussa1976.core import (
-    make,
-    create,
-    to_altitude,
-    H,
-    VARIABLES,
-    init_data_set,
-    compute_levels_temperature_and_pressure_low_altitude,
-    O_7,
-    O2_7,
-    AR_7,
-    compute_number_densities_high_altitude,
-    compute_mean_molar_mass_high_altitude,
-    M0,
-    M,
-    compute_temperature_high_altitude,
-    SPECIES,
-)
 from ussa1976 import ureg
+from ussa1976.core import AR_7
+from ussa1976.core import compute_levels_temperature_and_pressure_low_altitude
+from ussa1976.core import compute_mean_molar_mass_high_altitude
+from ussa1976.core import compute_number_densities_high_altitude
+from ussa1976.core import compute_temperature_high_altitude
+from ussa1976.core import create
+from ussa1976.core import H
+from ussa1976.core import init_data_set
+from ussa1976.core import M
+from ussa1976.core import M0
+from ussa1976.core import make
+from ussa1976.core import O2_7
+from ussa1976.core import O_7
+from ussa1976.core import SPECIES
+from ussa1976.core import to_altitude
+from ussa1976.core import VARIABLES
 
 
-def test_make_profile():
+def test_make_profile() -> None:
     # default constructor
     profile = make()
 
@@ -63,7 +63,7 @@ def test_make_profile():
         make(levels=np.linspace(500.0, 5000000.0))
 
 
-def test_create():
+def test_create() -> None:
     z = ureg.Quantity(np.linspace(0.0, 100000.0, 101), "meter")
     variables = ["p", "t", "n", "n_tot"]
     ds = create(z, variables=variables)
@@ -89,7 +89,7 @@ def test_create():
     )
 
 
-def test_create_below_86_km_layers_boundary_altitudes():
+def test_create_below_86_km_layers_boundary_altitudes() -> None:
     """
     We test the computation of the atmospheric variables (pressure,
     temperature and mass density) at the level altitudes, i.e. at the model
@@ -124,7 +124,7 @@ def test_create_below_86_km_layers_boundary_altitudes():
     assert np.allclose(ds["rho"].values, level_mass_density, rtol=1e-3)
 
 
-def test_create_below_86_km_arbitrary_altitudes():
+def test_create_below_86_km_arbitrary_altitudes() -> None:
     """
     We test the computation of the atmospheric variables (pressure,
     temperature and mass density) at arbitrary altitudes. We assert correctness
@@ -216,8 +216,8 @@ def test_create_below_86_km_arbitrary_altitudes():
     assert np.allclose(mass_densities, ds["rho"].values, rtol=1e-4)
 
 
-def test_init_data_set():
-    def check_data_set(ds):
+def test_init_data_set() -> None:
+    def check_data_set(ds: xr.Dataset) -> None:
         for var in VARIABLES:
             assert var in ds
             assert np.isnan(ds[var].values).all()
@@ -241,7 +241,7 @@ def test_init_data_set():
     check_data_set(ds3)
 
 
-def test_compute_levels_temperature_and_pressure_low_altitude():
+def test_compute_levels_temperature_and_pressure_low_altitude() -> None:
     tb, pb = compute_levels_temperature_and_pressure_low_altitude()
 
     level_temperature = np.array(
@@ -255,11 +255,13 @@ def test_compute_levels_temperature_and_pressure_low_altitude():
     assert np.allclose(pb, level_pressure, rtol=1e-3)
 
 
-def rtol(v, ref):
-    return np.abs(v - ref) / ref
+def rtol(
+    v: npt.NDArray[np.float64], ref: npt.NDArray[np.float64]
+) -> npt.NDArray[np.float64]:
+    return np.array(np.abs(v - ref) / ref)
 
 
-def test_compute_number_density():
+def test_compute_number_density() -> None:
     # the following altitudes values are chosen arbitrarily
     altitudes = ureg.Quantity(
         np.array(
@@ -427,7 +429,7 @@ def test_compute_number_density():
     assert np.allclose(n["H"][mask], values["H"][mask], rtol=0.01)
 
 
-def test_compute_mean_molar_mass():
+def test_compute_mean_molar_mass() -> None:
     # test call with scalar altitude
     assert compute_mean_molar_mass_high_altitude(90.0) == M0
     assert compute_mean_molar_mass_high_altitude(200.0) == M["N2"]
@@ -439,7 +441,7 @@ def test_compute_mean_molar_mass():
     )
 
 
-def test_compute_temperature_above_86_km():
+def test_compute_temperature_above_86_km() -> None:
     # test altitudes out of range raises value error
     with pytest.raises(ValueError):
         compute_temperature_high_altitude(10.0)
@@ -448,7 +450,7 @@ def test_compute_temperature_above_86_km():
     assert np.isclose(compute_temperature_high_altitude(90.0), 186.87, rtol=1e-3)
 
     # test call with array of altitudes
-    z = [100, 110, 120, 130, 200, 500]  # km
+    z = np.array([100.0, 110.0, 120.0, 130.0, 200.0, 500.0])  # km
     assert np.allclose(
         compute_temperature_high_altitude(z),
         np.array([195.08, 240.00, 360.0, 469.27, 854.56, 999.24]),
