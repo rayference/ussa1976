@@ -6,9 +6,12 @@ import xarray as xr
 
 from ussa1976 import ureg
 from ussa1976.core import AR_7
+from ussa1976.core import compute_high_altitude
 from ussa1976.core import compute_levels_temperature_and_pressure_low_altitude
+from ussa1976.core import compute_low_altitude
 from ussa1976.core import compute_mean_molar_mass_high_altitude
 from ussa1976.core import compute_number_densities_high_altitude
+from ussa1976.core import compute_temperature_gradient_high_altitude
 from ussa1976.core import compute_temperature_high_altitude
 from ussa1976.core import create
 from ussa1976.core import H
@@ -65,6 +68,14 @@ def test_make_profile() -> None:
 
 def test_create() -> None:
     z = ureg.Quantity(np.linspace(0.0, 100000.0, 101), "meter")
+
+    ds = create(z)
+    assert all([v in ds.data_vars for v in VARIABLES])
+
+    invalid_variables = ["p", "t", "invalid", "n"]
+    with pytest.raises(ValueError):
+        create(z, variables=invalid_variables)
+
     variables = ["p", "t", "n", "n_tot"]
     ds = create(z, variables=variables)
 
@@ -87,6 +98,12 @@ def test_create() -> None:
             for x in ["convention", "title", "history", "source", "references"]
         ]
     )
+
+    with pytest.raises(ValueError):
+        create(z=np.array([-5.0]))
+
+    with pytest.raises(ValueError):
+        create(z=np.array(1000001.0))
 
 
 def test_create_below_86_km_layers_boundary_altitudes() -> None:
@@ -456,3 +473,40 @@ def test_compute_temperature_above_86_km() -> None:
         np.array([195.08, 240.00, 360.0, 469.27, 854.56, 999.24]),
         rtol=1e-3,
     )
+
+
+def test_compute_high_altitude_no_mask() -> None:
+    z = ureg.Quantity(np.linspace(86e3, 1000e3), "m")
+    ds = init_data_set(z=z)
+    compute_high_altitude(ds, mask=None, inplace=True)
+    assert isinstance(ds, xr.Dataset)
+
+
+def test_compute_high_altitude_not_inplace() -> None:
+    z = ureg.Quantity(np.linspace(86e3, 1000e3), "m")
+    ds1 = init_data_set(z=z)
+    ds2 = compute_high_altitude(ds1, mask=None, inplace=False)
+    assert ds1 != ds2
+    assert isinstance(ds2, xr.Dataset)
+
+
+def test_compute_low_altitude() -> None:
+    z = ureg.Quantity(np.linspace(0, 86e3), "m")
+    ds = init_data_set(z=z)
+    compute_low_altitude(ds, mask=None, inplace=True)
+    assert isinstance(ds, xr.Dataset)
+
+
+def test_compute_low_altitude_not_inplace() -> None:
+    z = ureg.Quantity(np.linspace(0, 86e3), "m")
+    ds1 = init_data_set(z=z)
+    ds2 = compute_low_altitude(ds1, mask=None, inplace=False)
+    assert ds1 != ds2
+    assert isinstance(ds2, xr.Dataset)
+
+
+def test_compute_temperature_gradient_high_altitude() -> None:
+    """Raises ValueError when altitude is out of bounds."""
+    with pytest.raises(ValueError):
+        z = ureg.Quantity(1300e3, "m")
+        compute_temperature_gradient_high_altitude(z)

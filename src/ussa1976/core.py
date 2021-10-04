@@ -640,18 +640,11 @@ def init_data_set(z: t.Union[ureg.Quantity, npt.NDArray[np.float64]]) -> xr.Data
     data_vars = {}
     for var in VARIABLES:
         if var != "n":
-            try:
-                data_vars[var] = (
-                    DIMS[var],
-                    np.full(z.shape, np.nan),
-                    {"units": UNITS[var], "standard_name": STANDARD_NAME[var]},
-                )
-            except KeyError:
-                data_vars[var] = (
-                    DIMS[var],
-                    np.full(z.shape, np.nan),
-                    {"units": UNITS[var], "standard_name": STANDARD_NAME[var]},
-                )
+            data_vars[var] = (
+                DIMS[var],
+                np.full(z.shape, np.nan),
+                {"units": UNITS[var], "standard_name": STANDARD_NAME[var]},
+            )
         else:
             data_vars[var] = (
                 DIMS[var],
