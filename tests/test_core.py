@@ -1,6 +1,7 @@
 """Test cases for the core module."""
 import numpy as np
 import numpy.typing as npt
+import pint
 import pytest
 import xarray as xr
 
@@ -26,7 +27,8 @@ from ussa1976.core import to_altitude
 from ussa1976.core import VARIABLES
 
 
-def test_make_profile() -> None:
+def test_make() -> None:
+    """Returned data set has expected data."""
     # default constructor
     profile = make()
 
@@ -58,7 +60,9 @@ def test_make_profile() -> None:
     assert profile["z_level"].values[-1] == 80000.0
     assert profile.dims["species"] == 12
 
-    # invalid levels
+
+def test_make_invalid_levels() -> None:
+    """Raises a ValueError on invalid level altitudes."""
     with pytest.raises(ValueError):
         make(levels=np.linspace(-4000, 50000))
 
@@ -66,15 +70,18 @@ def test_make_profile() -> None:
         make(levels=np.linspace(500.0, 5000000.0))
 
 
-def test_create() -> None:
+@pytest.fixture
+def test_altitudes() -> pint.Quantity:
+    """Test altitudes fixture."""
+    return ureg.Quantity(np.linspace(0.0, 100000.0, 101), "meter")
+
+
+def test_create(test_altitudes: npt.NDArray[np.float64]) -> None:
+    """Creates a data set with expected data."""
     z = ureg.Quantity(np.linspace(0.0, 100000.0, 101), "meter")
 
-    ds = create(z)
+    ds = create(z=test_altitudes)
     assert all([v in ds.data_vars for v in VARIABLES])
-
-    invalid_variables = ["p", "t", "invalid", "n"]
-    with pytest.raises(ValueError):
-        create(z, variables=invalid_variables)
 
     variables = ["p", "t", "n", "n_tot"]
     ds = create(z, variables=variables)
@@ -99,6 +106,16 @@ def test_create() -> None:
         ]
     )
 
+
+def test_create_invalid_variables(test_altitudes: npt.NDArray[np.float64]) -> None:
+    """Raises when invalid variables are given."""
+    invalid_variables = ["p", "t", "invalid", "n"]
+    with pytest.raises(ValueError):
+        create(z=test_altitudes, variables=invalid_variables)
+
+
+def test_create_invalid_z() -> None:
+    """Raises when invalid altitudes values are given."""
     with pytest.raises(ValueError):
         create(z=np.array([-5.0]))
 
@@ -108,12 +125,13 @@ def test_create() -> None:
 
 def test_create_below_86_km_layers_boundary_altitudes() -> None:
     """
+    Produces correct results.
+
     We test the computation of the atmospheric variables (pressure,
     temperature and mass density) at the level altitudes, i.e. at the model
     layer boundaries. We assert correctness by comparing their values with the
     values from the table 1 of the U.S. Standard Atmosphere 1976 document.
     """
-
     z = to_altitude(np.array(H))
     ds = create(z, variables=["p", "t", "rho"])
 
@@ -143,12 +161,13 @@ def test_create_below_86_km_layers_boundary_altitudes() -> None:
 
 def test_create_below_86_km_arbitrary_altitudes() -> None:
     """
+    Produces correct results.
+
     We test the computation of the atmospheric variables (pressure,
     temperature and mass density) at arbitrary altitudes. We assert correctness
     by comparing their values to the values from table 1 of the U.S. Standard
     Atmosphere 1976 document.
     """
-
     # The values below were selected arbitrarily from Table 1 of the document
     # such that there is at least one value in each of the 7 temperature
     # regions.
@@ -234,7 +253,14 @@ def test_create_below_86_km_arbitrary_altitudes() -> None:
 
 
 def test_init_data_set() -> None:
+    """Data set is initialised.
+
+    Expected data variables are created and fill with nan values.
+    Expected dimensions and coordinates are present.
+    """
+
     def check_data_set(ds: xr.Dataset) -> None:
+        """Check a data set."""
         for var in VARIABLES:
             assert var in ds
             assert np.isnan(ds[var].values).all()
@@ -259,6 +285,10 @@ def test_init_data_set() -> None:
 
 
 def test_compute_levels_temperature_and_pressure_low_altitude() -> None:
+    """Computes correct level temperature and pressure values.
+
+    The correct values are taken from :cite:`NASA1976USStandardAtmosphere`.
+    """
     tb, pb = compute_levels_temperature_and_pressure_low_altitude()
 
     level_temperature = np.array(
@@ -275,10 +305,16 @@ def test_compute_levels_temperature_and_pressure_low_altitude() -> None:
 def rtol(
     v: npt.NDArray[np.float64], ref: npt.NDArray[np.float64]
 ) -> npt.NDArray[np.float64]:
+    """Compute a relative tolerance."""
     return np.array(np.abs(v - ref) / ref)
 
 
 def test_compute_number_density() -> None:
+    """Computes correct number density values at arbitrary level altitudes.
+
+    The correct values are taken from :cite:`NASA1976USStandardAtmosphere`
+    (table VIII, p. 210-215).
+    """
     # the following altitudes values are chosen arbitrarily
     altitudes = ureg.Quantity(
         np.array(
@@ -432,21 +468,20 @@ def test_compute_number_density() -> None:
 
     n = compute_number_densities_high_altitude(altitudes)
 
-    # print('N2:', rtol(n[0], values['N2']))
     assert np.allclose(n["N2"], values["N2"], rtol=0.01)
-    # print('O:',  rtol(n[1], values['O']))
+    # TODO: investigate the poor relative tolerance that is achieved here
     assert np.allclose(n["O"], values["O"], rtol=0.1)
-    # print('O2:', rtol(n[2], values['O2']))
     assert np.allclose(n["O2"], values["O2"], rtol=0.01)
-    # print('Ar:', rtol(n[3], values['Ar']))
     assert np.allclose(n["Ar"], values["Ar"], rtol=0.01)
-    # print('He:', rtol(n[4], values['He']))
     assert np.allclose(n["He"], values["He"], rtol=0.01)
-    # print('H:', rtol(n[5][mask], values['H'][mask]))
     assert np.allclose(n["H"][mask], values["H"][mask], rtol=0.01)
 
 
 def test_compute_mean_molar_mass() -> None:
+    """Computes correct mean molar mass values.
+
+    The correct values are taken from :cite:`NASA1976USStandardAtmosphere`.
+    """
     # test call with scalar altitude
     assert compute_mean_molar_mass_high_altitude(90.0) == M0
     assert compute_mean_molar_mass_high_altitude(200.0) == M["N2"]
@@ -459,10 +494,10 @@ def test_compute_mean_molar_mass() -> None:
 
 
 def test_compute_temperature_above_86_km() -> None:
-    # test altitudes out of range raises value error
-    with pytest.raises(ValueError):
-        compute_temperature_high_altitude(10.0)
+    """Compute correct temperature values.
 
+    The correct values are taken from :cite:`NASA1976USStandardAtmosphere`.
+    """
     # test call with scalar altitude
     assert np.isclose(compute_temperature_high_altitude(90.0), 186.87, rtol=1e-3)
 
@@ -475,7 +510,14 @@ def test_compute_temperature_above_86_km() -> None:
     )
 
 
+def test_compute_temperature_above_86_km_invalid_altitudes() -> None:
+    """Raises when altitude is out of range."""
+    with pytest.raises(ValueError):
+        compute_temperature_high_altitude(altitude=10.0)
+
+
 def test_compute_high_altitude_no_mask() -> None:
+    """Returns a Dataset."""
     z = ureg.Quantity(np.linspace(86e3, 1000e3), "m")
     ds = init_data_set(z=z)
     compute_high_altitude(ds, mask=None, inplace=True)
@@ -483,6 +525,7 @@ def test_compute_high_altitude_no_mask() -> None:
 
 
 def test_compute_high_altitude_not_inplace() -> None:
+    """Returns a Dataset."""
     z = ureg.Quantity(np.linspace(86e3, 1000e3), "m")
     ds1 = init_data_set(z=z)
     ds2 = compute_high_altitude(ds1, mask=None, inplace=False)
@@ -491,6 +534,7 @@ def test_compute_high_altitude_not_inplace() -> None:
 
 
 def test_compute_low_altitude() -> None:
+    """Returns a Dataset."""
     z = ureg.Quantity(np.linspace(0, 86e3), "m")
     ds = init_data_set(z=z)
     compute_low_altitude(ds, mask=None, inplace=True)
@@ -498,6 +542,7 @@ def test_compute_low_altitude() -> None:
 
 
 def test_compute_low_altitude_not_inplace() -> None:
+    """Returns a Dataset."""
     z = ureg.Quantity(np.linspace(0, 86e3), "m")
     ds1 = init_data_set(z=z)
     ds2 = compute_low_altitude(ds1, mask=None, inplace=False)
