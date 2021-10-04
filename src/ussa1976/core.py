@@ -2,8 +2,8 @@
 US Standard Atmosphere 1976 thermophysical model, according to
 :cite:`NASA1976USStandardAtmosphere`.
 """
+import datetime
 import typing as t
-from datetime import datetime
 
 import numpy as np
 import numpy.ma as ma
@@ -98,7 +98,7 @@ def make(
     thermoprops_ds.attrs = dict(
         convention="CF-1.8",
         title="U.S. Standard Atmosphere 1976",
-        history=f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} - "
+        history=f"{datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')} - "
         f"data creation - eradiate.scenes.atmosphere.us76.make_profile",
         source=f"ussa1976, version {__version__}",
         references="U.S. Standard Atmosphere, 1976, NASA-TM-X-74335, "
@@ -664,7 +664,7 @@ def init_data_set(z: t.Union[ureg.Quantity, npt.NDArray[np.float64]]) -> xr.Data
     attrs = {
         "convention": "CF-1.8",
         "title": "U.S. Standard Atmosphere 1976",
-        "history": f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} - data creation - "
+        "history": f"{datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')} - data creation - "
         f"eradiate.scenes.atmosphere.us76.create",
         "source": f"eradiate, version {__version__}",
         "references": "U.S. Standard Atmosphere, 1976, NASA-TM-X-74335, NOAA-S/T-76-1562",
