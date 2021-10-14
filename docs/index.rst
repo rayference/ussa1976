@@ -9,8 +9,9 @@
    :maxdepth: 1
 
    usage
-   bibliography
+   user_guide
    reference
+   bibliography
    contributing
    Code of Conduct <codeofconduct>
    License <license>
