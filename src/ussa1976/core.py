@@ -15,8 +15,8 @@ import xarray as xr
 from scipy.integrate import cumtrapz
 from scipy.interpolate import interp1d
 
-from ussa1976 import __version__
-from ussa1976 import ureg
+from . import __version__
+from .units import ureg
 
 # ------------------------------------------------------------------------------
 #

@@ -5,7 +5,6 @@ import pint
 import pytest
 import xarray as xr
 
-from ussa1976 import ureg
 from ussa1976.core import AR_7
 from ussa1976.core import compute_high_altitude
 from ussa1976.core import compute_levels_temperature_and_pressure_low_altitude
@@ -25,6 +24,7 @@ from ussa1976.core import O_7
 from ussa1976.core import SPECIES
 from ussa1976.core import to_altitude
 from ussa1976.core import VARIABLES
+from ussa1976.units import ureg
 
 
 def test_make() -> None:
