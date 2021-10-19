@@ -1,5 +1,5 @@
 """
-US Standard Atmosphere 1976 thermophysical model.
+U.S. Standard Atmosphere 1976 thermophysical model.
 
 U.S. Standard Atmosphere, 1976 thermophysical model according to
 :cite:`NASA1976USStandardAtmosphere`.
@@ -16,7 +16,8 @@ from scipy.integrate import cumulative_trapezoid
 from scipy.interpolate import interp1d
 
 from . import __version__
-from .units import to_quantity, ureg
+from .units import to_quantity
+from .units import ureg
 
 # ------------------------------------------------------------------------------
 #
@@ -32,14 +33,16 @@ def make(levels: pint.Quantity = _DEFAULT_LEVELS) -> xr.Dataset:
 
     Parameters
     ----------
-    levels: :class:`~pint.Quantity`
+    levels: quantity, optional
         Level altitudes.
         The values must be sorted by increasing order.
-        Valid range: 0 to 1e6 m.
+        The default levels are 51 linearly spaced values between 0 and 100 km.
+
+        Valid range: 0 to 1000 km.
 
     Returns
     -------
-    :class:`~xarray.Dataset`
+    Dataset
         Data set holding the values of the pressure, temperature,
         total number density and number densities of the individual
         gas species in each layer.
@@ -63,7 +66,7 @@ def make(levels: pint.Quantity = _DEFAULT_LEVELS) -> xr.Dataset:
 
     z_layer = (levels[:-1] + levels[1:]) / 2
 
-    # create the US76 data set
+    # create the data set
     ds = create(
         z=z_layer,
         variables=["p", "t", "n", "n_tot"],
@@ -412,11 +415,11 @@ def create(
     z: pint.Quantity,
     variables: t.Optional[t.List[str]] = None,
 ) -> xr.Dataset:
-    """Create US Standard Atmosphere 1976 data set.
+    """Create U.S. Standard Atmosphere 1976 data set.
 
     Parameters
     ----------
-    z: :class:`~pint.Quantity`
+    z: quantity
         Altitude mesh.
 
     variables: list, optional
@@ -424,7 +427,7 @@ def create(
 
     Returns
     -------
-    :class:`~xarray.Dataset`
+    Dataset
         Data set holding the values of the different atmospheric variables.
 
     Raises
@@ -464,7 +467,7 @@ def create(
 
     # list names of variables to drop from the data set
     names = []
-    for var in ds.data_vars:
+    for var in ds.data_vars:  # type: ignore
         if var not in variables:
             names.append(var)
 
@@ -474,24 +477,24 @@ def create(
 def compute_low_altitude(
     data_set: xr.Dataset, mask: t.Optional[xr.DataArray] = None, inplace: bool = False
 ) -> t.Optional[xr.Dataset]:
-    """Compute US Standard Atmosphere 1976 in low-altitude region.
+    """Compute U.S. Standard Atmosphere 1976 in low-altitude region.
 
     Parameters
     ----------
-    data_set: :class:`~xarray.Dataset`
+    data_set: Dataset
         Data set to compute.
 
-    mask: :class:`~xarray.DataArray`
+    mask: DataArray, optional
         Mask to select the region of the data set to compute.
         By default, the mask selects the entire data set.
 
-    inplace: bool
+    inplace: bool, default=False
         If ``True``, modifies ``data_set`` in place, else returns a copy of
         ``data_set``.
 
     Returns
     -------
-    :class:`~xarray.Dataset`
+    Dataset
         If ``inplace`` is ``True``, returns nothing, else returns a copy of
         ``data_set``.
     """
@@ -567,25 +570,24 @@ def compute_low_altitude(
 def compute_high_altitude(
     data_set: xr.Dataset, mask: t.Optional[xr.DataArray] = None, inplace: bool = False
 ) -> t.Optional[xr.Dataset]:
-    """Compute US Standard Atmosphere 1976 in high-altitude region.
+    """Compute U.S. Standard Atmosphere 1976 in high-altitude region.
 
     Parameters
     ----------
-    data_set: :class:`~xarray.Dataset`
+    data_set: Dataset
         Data set to compute.
 
-    mask: :class:`~xarray.DataArray`
+    mask: DataArray, optional
         Mask to select the region of the data set to compute.
         By default, the mask selects the entire data set.
 
-    inplace: bool
+    inplace: bool, default False
         If ``True``, modifies ``data_set`` in place, else returns a copy of
         ``data_set``.
-        Default: ``False``.
 
     Returns
     -------
-    :class:`~xarray.Dataset`
+    Dataset
         If ``inplace`` is True, returns nothing, else returns a copy of
         ``data_set``.
     """
@@ -654,12 +656,12 @@ def init_data_set(z: pint.Quantity) -> xr.Dataset:
 
     Parameters
     ----------
-    z: :class:`~pint.Quantity`
-        Altitudes values [m]
+    z: quantity
+        Altitudes.
 
     Returns
     -------
-    :class:`~xarray.Dataset`:
+    Dataset
         Initialised data set.
     """
     data_vars = {}
@@ -703,11 +705,11 @@ def init_data_set(z: pint.Quantity) -> xr.Dataset:
 def compute_levels_temperature_and_pressure_low_altitude() -> t.Tuple[
     pint.Quantity, pint.Quantity
 ]:
-    """Compute temperature and pressure values at low-altitude model levels .
+    """Compute temperature and pressure at low-altitude region' levels.
 
     Returns
     -------
-    tuple:
+    tuple of quantity:
          Levels temperatures and pressures.
     """
     tb = [T0]
@@ -734,19 +736,19 @@ def compute_levels_temperature_and_pressure_low_altitude() -> t.Tuple[
 
 def compute_number_densities_high_altitude(
     altitudes: pint.Quantity,
-) -> t.Dict[str, npt.NDArray[np.float64]]:
+) -> t.Dict[str, pint.Quantity]:
     """Compute number density of individual species in high-altitude region.
 
     Parameters
     ----------
-    altitudes: :class:`~pint.Quantity`
+    altitudes: quantity
         Altitudes.
 
     Returns
     -------
-    :class:`~numpy.ndarray`
+    dict
         Number densities of the individual species and total number density at
-        the given altitudes [m^-3].
+        the given altitudes.
 
     Notes
     -----
@@ -797,7 +799,7 @@ def compute_number_densities_high_altitude(
     m = compute_mean_molar_mass_high_altitude(z=grid)  # [kg/mol]
     g = compute_gravity(z=grid)  # [m / s^2]
     t = compute_temperature_high_altitude(grid)  # [K]
-    dt_dz = compute_temperature_gradient_high_altitude(altitude=grid)  # [K/m]
+    dt_dz = compute_temperature_gradient_high_altitude(z=grid)  # [K/m]
     below_115 = grid.m_as(ureg.km) < 115.0
     k = eddy_diffusion_coefficient(grid[below_115])  # [m^2/s]
 
@@ -946,12 +948,12 @@ def compute_mean_molar_mass_high_altitude(
 
     Parameters
     ----------
-    z: :class:`~pint.Quantity`
+    z: quantity
         Altitude.
 
     Returns
     -------
-    :class:`~pint.Quantity`
+    quantity
         Mean molar mass.
     """
     return np.where(z.m_as("km") <= 100.0, M0, M["N2"])
@@ -962,12 +964,12 @@ def compute_temperature_high_altitude(altitude: pint.Quantity) -> pint.Quantity:
 
     Parameters
     ----------
-    altitude: :class:`~pint.Quantity`
+    altitude: quantity
         Altitude.
 
     Returns
     -------
-    :class:`~pint.Quantity`
+    quantity
         Temperature.
     """
     r0 = R0
@@ -994,15 +996,19 @@ def compute_temperature_high_altitude(altitude: pint.Quantity) -> pint.Quantity:
             If the altitude is out of range.
         """
         if Z7.m_as(ureg.km) <= z <= Z8.m_as(ureg.km):
-            return T7.m_as(ureg.K)
+            return T7.m_as(ureg.K)  # type: ignore
         elif Z8.m_as(ureg.km) < z <= Z9.m_as(ureg.km):
             return tc + a * float(
                 np.sqrt(1.0 - np.power((z - Z8.m_as(ureg.km)) / b, 2.0))
             )
         elif Z9.m_as(ureg.km) < z <= Z10.m_as(ureg.km):
-            return T9.m_as(ureg.K) + LK9.m_as(ureg.K / ureg.km) * (z - Z9.m_as(ureg.km))
+            t9 = T9.m_as(ureg.K)
+            lk9 = LK9.m_as(ureg.K / ureg.km)
+            return t9 + lk9 * (z - Z9.m_as(ureg.km))  # type: ignore
         elif Z10.m_as(ureg.km) < z <= Z12.m_as(ureg.km):
-            return TINF.m_as(ureg.K) - (TINF.m_as(ureg.K) - T10.m_as(ureg.K)) * float(
+            t_inf = TINF.m_as(ureg.K)
+            t10 = T10.m_as(ureg.K)
+            return t_inf - (t_inf - t10) * float(  # type: ignore
                 np.exp(
                     -LAMBDA.m_as(1 / ureg.km)
                     * (z - Z10.m_as(ureg.km))
@@ -1016,30 +1022,28 @@ def compute_temperature_high_altitude(altitude: pint.Quantity) -> pint.Quantity:
     return np.array(np.vectorize(t)(altitude.m_as(ureg.km))) * ureg.K
 
 
-def compute_temperature_gradient_high_altitude(
-    altitude: pint.Quantity,
-) -> pint.Quantity:
+def compute_temperature_gradient_high_altitude(z: pint.Quantity) -> pint.Quantity:
     """Compute temperature gradient in high-altitude region.
 
     Parameters
     ----------
-    altitude: :class:`~pint.Quantity`
+    z: quantity
         Altitude.
 
     Returns
     -------
-    :class:`pint.Quantity`
+    quantity
         Temperature gradient.
     """
     a = -76.3232  # [dimensionless]
     b = -19.9429  # km
 
-    def gradient(z: float) -> float:
+    def gradient(z_value: float) -> float:
         """Compute temperature gradient at given altitude.
 
         Parameters
         ----------
-        z: float
+        z_value: float
             Altitude [km].
 
         Raises
@@ -1052,38 +1056,42 @@ def compute_temperature_gradient_high_altitude(
         float
             Temperature gradient [K/km].
         """
-        if Z7.m_as("km") <= z <= Z8.m_as("km"):
-            return LK7.m_as("K/km")
-        elif Z8.m_as("km") < z <= Z9.m_as("km"):
-            return (
+        if Z7.m_as("km") <= z_value <= Z8.m_as("km"):
+            return float(LK7.m_as("K/km"))  # type: ignore
+        elif Z8.m_as("km") < z_value <= Z9.m_as("km"):
+            return float(  # type: ignore
                 -a
                 / b
-                * ((z - Z8.m_as("km")) / b)
-                / float(np.sqrt(1 - np.square((z - Z8.m_as("km")) / b)))
+                * ((z_value - Z8.m_as("km")) / b)
+                / float(np.sqrt(1 - np.square((z_value - Z8.m_as("km")) / b)))
             )
-        elif Z9.m_as("km") < z <= Z10.m_as("km"):
-            return LK9.m_as("K/km")
-        elif Z10.m_as("km") < z <= Z12.m_as("km"):
+        elif Z9.m_as("km") < z_value <= Z10.m_as("km"):
+            return float(LK9.m_as("K/km"))  # type: ignore
+        elif Z10.m_as("km") < z_value <= Z12.m_as("km"):
             zeta = (
-                (z - Z10.m_as("km"))
+                (z_value - Z10.m_as("km"))
                 * (R0.m_as("km") + Z10.m_as("km"))
-                / (R0.m_as("km") + z)
+                / (R0.m_as("km") + z_value)
             )  # [km]
-            return (
+            return float(  # type: ignore
                 LAMBDA.m_as("km^-1")
                 * (TINF - T10).m_as("K")
                 * float(
-                    np.square((R0.m_as("km") + Z10.m_as("km")) / (R0.m_as("km") + z))
+                    np.square(
+                        (R0.m_as("km") + Z10.m_as("km")) / (R0.m_as("km") + z_value)
+                    )
                 )
                 * float(np.exp(-LAMBDA.m_as("km^-1") * zeta))
             )
 
         else:
             raise ValueError(
-                f"altitude z ({z}) out of range, should be in [{Z7.m_as('km')}, {Z12.m_as('km')}]"
+                f"altitude z ({z_value}) out of range, should be in ["
+                f"{Z7.m_as('km')}, {Z12.m_as('km')}]"
             )
 
-    return np.array(np.vectorize(gradient)(altitude.m_as("km"))) * ureg.K / ureg.km
+    z_values = np.array(z.m_as("km"), dtype=float)
+    return np.array(np.vectorize(gradient)(z_values)) * ureg.K / ureg.km
 
 
 def thermal_diffusion_coefficient(
@@ -1092,25 +1100,25 @@ def thermal_diffusion_coefficient(
     a: pint.Quantity,
     b: pint.Quantity,
 ) -> pint.Quantity:
-    """Compute thermal diffusion coefficient values in high-altitude region.
+    r"""Compute thermal diffusion coefficient values in high-altitude region.
 
     Parameters
     ----------
-    background: :class:`pint.Quantity`
+    background: quantity
         Background number density.
 
-    temperature: :class:`pint.Quantity`
+    temperature: quantity
         Temperature.
 
-    a: :class:`pint.Quantity`
-        Thermal diffusion constant a.
+    a: quantity
+        Thermal diffusion constant :math:`a`.
 
-    b: :class:`pint.Quantity`
-        Thermal diffusion constant b.
+    b: quantity
+        Thermal diffusion constant :math:`b`.
 
     Returns
     -------
-    :class:`~pint.Quantity`
+    quantity
         Thermal diffusion coefficient.
     """
     return (a / background) * np.power(
@@ -1119,16 +1127,16 @@ def thermal_diffusion_coefficient(
 
 
 def eddy_diffusion_coefficient(z: pint.Quantity) -> pint.Quantity:
-    r"""Compute Eddy diffusion coefficient values in high-altitude region.
+    r"""Compute Eddy diffusion coefficient in high-altitude region.
 
     Parameters
     ----------
-    z: :class:`~pint.Quantity`
+    z: quantity
         Altitude.
 
     Returns
     -------
-    :class:`~pint.Quantity`
+    quantity
         Eddy diffusion coefficient.
 
     Notes
@@ -1160,34 +1168,34 @@ def f_below_115_km(
 
     Parameters
     ----------
-    g: :class:`~pint.Quantity`:
+    g: quantity
         Gravity values at the different altitudes.
 
-    t: :class:`~pint.Quantity`
+    t: quantity
         Temperature values at the different altitudes.
 
-    dt_dz: :class:`~pint.Quantity`
+    dt_dz: quantity
         Temperature gradient values at the different altitudes.
 
-    m: :class:`~pint.Quantity`
+    m: quantity
         Molar mass.
 
-    mi: :class:`~pint.Quantity`
-        Species molar mass.
+    mi: quantity
+        Species molar masses.
 
-    alpha: :class:`~pint.Quantity`
+    alpha: quantity
         Alpha thermal diffusion constant.
 
-    d: :class:`~pint.Quantity`
+    d: quantity
         Thermal diffusion coefficient values at the different altitudes.
 
-    k: :class:`~pint.Quantity`
+    k: quantity
         Eddy diffusion coefficient values at the different altitudes.
 
     Returns
     -------
-    :class:`~pint.Quantity`
-        Function f at the different altitudes.
+    quantity
+        Function :math:`f` at the different altitudes.
     """
     term_1 = g * d / ((d + k) * (R * t))
     term_2 = mi + (m * k) / d + (alpha * R * dt_dz) / g
@@ -1209,25 +1217,25 @@ def f_above_115_km(
 
     Parameters
     ----------
-    g: :class:`~pint.Quantity`
+    g: quantity
         Gravity at the different altitudes.
 
-    t: :class:`~pint.Quantity`
+    t: quantity
         Temperature at the different altitudes.
 
-    dt_dz: :class:`~pint.Quantity`
+    dt_dz: quantity
         Temperature gradient at the different altitudes.
 
-    mi: :class:`~pint.Quantity`
-        Species molar mass.
+    mi: quantity
+        Species molar masses.
 
-    alpha: :class:`~pint.Quantity`
+    alpha: quantity
         Alpha thermal diffusion constant.
 
     Returns
     -------
-    :class:`~pint.Quantity`
-        Function f at the different altitudes.
+    quantity
+        Function :math:`f` at the different altitudes.
     """
     return (g / (R * t)) * (mi + ((alpha * R) / g) * dt_dz)
 
@@ -1249,32 +1257,32 @@ def thermal_diffusion_term(
     species: str
         Species.
 
-    grid: :class:`~pint.Quantity`
+    grid: quantity
         Altitude grid.
 
-    g: :class:`~pint.Quantity`
+    g: quantity
         Gravity values on the altitude grid.
 
-    t: :class:`~pint.Quantity`
+    t: quantity
         Temperature values on the altitude grid.
 
-    dt_dz: :class:`~pint.Quantity`
+    dt_dz: quantity
         Temperature gradient values on the altitude grid.
 
-    m: :class:`~pint.Quantity`
+    m: quantity
         Values of the mean molar mass on the altitude grid.
 
-    d: :class:`~pint.Quantity`
+    d: quantity
         Molecular diffusion coefficient values on the altitude grid,
-        for altitudes < 115 km.
+        for altitudes strictly less than 115 km.
 
-    k: :class:`~pint.Quantity`
+    k: quantity
         Eddy diffusion coefficient values on the altitude grid, for
-        altitudes < 115 km.
+        altitudes strictly less than 115 km.
 
     Returns
     -------
-    :class:`~pint.Quantity`
+    quantity
         Thermal diffusion term.
     """
     below_115_km = grid < 115.0 * ureg.km
@@ -1296,7 +1304,7 @@ def thermal_diffusion_term(
         M[species],
         ALPHA[species],
     )
-    return np.concatenate((fo1, fo2))
+    return np.concatenate((fo1, fo2))  # type: ignore
 
 
 def thermal_diffusion_term_atomic_oxygen(
@@ -1311,27 +1319,27 @@ def thermal_diffusion_term_atomic_oxygen(
 
     Parameters
     ----------
-    grid: :class:`~pint.Quantity`
-        Altitude.
+    grid: quantity
+        Altitude grid.
 
-    g: :class:`~pint.Quantity`
+    g: quantity
         Gravity values on the altitude grid.
 
-    t: :class:`~pint.Quantity`
+    t: quantity
         Temperature values on the altitude grid.
 
-    dt_dz: :class:`~pint.Quantity`
+    dt_dz: quantity
         Temperature values gradient on the altitude grid.
 
-    d: :class:`~pint.Quantity`
+    d: quantity
         Thermal diffusion coefficient on the altitude grid.
 
-    k: :class:`~pint.Quantity`
+    k: quantity
         Eddy diffusion coefficient values on the altitude grid.
 
     Returns
     -------
-    :class:`~pint.Quantity`
+    quantity
         Thermal diffusion term.
     """
     mask1, mask2 = grid < 115.0 * ureg.km, grid >= 115.0 * ureg.km
@@ -1348,17 +1356,17 @@ def thermal_diffusion_term_atomic_oxygen(
     x2 = f_above_115_km(
         g=g[mask2], t=t[mask2], dt_dz=dt_dz[mask2], mi=M["O"], alpha=ALPHA["O"]
     )
-    return np.concatenate((x1, x2))
+    return np.concatenate((x1, x2))  # type: ignore
 
 
 def velocity_term_hump(
     z: pint.Quantity,
-    q1: float,
-    q2: float,
-    u1: float,
-    u2: float,
-    w1: float,
-    w2: float,
+    q1: pint.Quantity,
+    q2: pint.Quantity,
+    u1: pint.Quantity,
+    u2: pint.Quantity,
+    w1: pint.Quantity,
+    w2: pint.Quantity,
 ) -> pint.Quantity:
     r"""Compute transport term.
 
@@ -1367,35 +1375,35 @@ def velocity_term_hump(
 
     Parameters
     ----------
-    z: :class:`~pint.Quantity`
+    z: quantity
         Altitude.
 
-    q1: float
-        Value of the Q constant [km^-3].
+    q1: quantity
+        Q constant.
 
-    q2: float
-        Value of the q constant [km^-3].
+    q2: quantity
+        q constant.
 
-    u1: float
-        Value of the U constant [km].
+    u1: quantity
+        U constant.
 
-    u2: float
-        Value of the u constant [km].
+    u2: quantity
+        u constant.
 
-    w1: float
-        Value of the W constant [km^-3].
+    w1: quantity
+        W constant.
 
-    w2: float
-        Value of the w constant [km^-3].
+    w2: quantity
+        w constant.
 
     Returns
     -------
-    :class:`~pint.Quantity`:
+    quantity:
         Transport term.
 
     Notes
     -----
-    Valid in the altitude region: :math:`86 km \leq z \leq 150 km`.
+    Valid in the altitude region: 86 km :math:`\leq z \leq` 150 km.
     """
     return q1 * np.square(z - u1) * np.exp(
         -w1.m_as(1 / ureg.km ** 3) * np.power((z - u1).m_as(ureg.km), 3.0)
@@ -1414,21 +1422,21 @@ def velocity_term_no_hump(
 
     Parameters
     ----------
-    z: :class:`~pint.Quantity`
+    z: quantity
         Altitude.
 
-    q1: :class:`~pint.Quantity`
+    q1: quantity
         Q constant.
 
-    u1: :class:`~pint.Quantity`
+    u1: quantity
         U constant.
 
-    w1: :class:`~pint.Quantity`
+    w1: quantity
         W constant.
 
     Returns
     -------
-    :class:`~pint.Quantity`
+    quantity
         Transport term.
 
     Notes
@@ -1450,12 +1458,12 @@ def velocity_term(species: str, grid: pint.Quantity) -> pint.Quantity:
     species: str
         Species.
 
-    grid: :class:`~pint.Quantity`
+    grid: quantity
         Altitude grid.
 
     Returns
     -------
-    :class:`~pint.Quantity`
+    quantity
         Velocity term.
 
     Notes
@@ -1469,7 +1477,7 @@ def velocity_term(species: str, grid: pint.Quantity) -> pint.Quantity:
     # Above 150 km, the velocity term is neglected, as indicated at p. 14 in
     # :cite:`NASA1976USStandardAtmosphere`
     x2 = np.zeros(len(grid[grid > 150.0 * ureg.km]))
-    return np.concatenate((x1, x2))
+    return np.concatenate((x1, x2))  # type: ignore
 
 
 def velocity_term_atomic_oxygen(grid: pint.Quantity) -> pint.Quantity:
@@ -1477,12 +1485,12 @@ def velocity_term_atomic_oxygen(grid: pint.Quantity) -> pint.Quantity:
 
     Parameters
     ----------
-    grid: :class:`~pint.Quantity`
+    grid: quantity
         Altitude grid.
 
     Returns
     -------
-    :class:`~pint.Quantity`
+    quantity
         Velocity term.
     """
     mask1, mask2 = grid <= 150.0 * ureg.km, grid > 150.0 * ureg.km
@@ -1501,7 +1509,7 @@ def velocity_term_atomic_oxygen(grid: pint.Quantity) -> pint.Quantity:
     )
 
     x2 = np.zeros(len(grid[mask2]))
-    return np.concatenate((x1, x2))
+    return np.concatenate((x1, x2))  # type: ignore
 
 
 def tau_function(
@@ -1514,20 +1522,21 @@ def tau_function(
 
     Parameters
     ----------
-    z_grid: :class:`~pint.Quantity`
-        Altitude grid (values sorted by ascending order) to use for integration [km].
+    z_grid: quantity
+        Altitude grid (values sorted by ascending order) to use for integration.
 
-    below_500: bool
-        ``True`` if altitudes in z_grid are lower than 500 km, False otherwise.
+    below_500: bool, default True
+        ``True`` if altitudes in ``z_grid`` are lower than 500 km, False
+        otherwise.
 
     Returns
     -------
-    :class:`~numpy.ndarray`
+    ndarray
         Integral evaluations [dimensionless].
 
     Notes
     -----
-    Valid for altitudes between 150 km and 500 km.
+    Valid for 150 km :math:`leq z \leq` 500 km.
     """
     if below_500:
         z_grid = z_grid[::-1]
@@ -1542,9 +1551,9 @@ def tau_function(
     )
 
     if below_500:
-        return integral_values[::-1]
+        return integral_values[::-1]  # type: ignore
     else:
-        return integral_values
+        return integral_values  # type: ignore
 
 
 def log_interp1d(
@@ -1554,16 +1563,16 @@ def log_interp1d(
 
     Parameters
     ----------
-    x: :class:`~numpy.ndarray`
-        1-D array of real value.
+    x: ndarray
+        1-D array of real values.
 
-    y: :class:`~numpy.ndarray`
+    y: ndarray
         N-D array of real values. The length of y along the interpolation axis
         must be equal to the length of x.
 
     Returns
     -------
-    Callable
+    callable
         Interpolating function.
     """
     logx = np.log10(x)
@@ -1585,27 +1594,27 @@ def compute_pressure_low_altitude(
 
     Parameters
     ----------
-    h: :class:`~pint.Quantity`
+    h: quantity
         Geopotential height.
 
-    pb: :class:`~pint.Quantity`
+    pb: quantity
         Levels pressure.
 
-    tb: :class:`~pint.Quantity`
+    tb: quantity
         Levels temperature.
 
     Returns
     -------
-    :class:`~pint.Quantity`
+    quantity
         Pressure.
     """
     # we create a mask for each layer
     h_units = ureg.m
     masks = [
-        ma.masked_inside(
+        ma.masked_inside(  # type: ignore
             h.m_as(h_units), H[i - 1].m_as(h_units), H[i].m_as(h_units)
         ).mask
-        for i in range(1, 8)  # type: ignore
+        for i in range(1, 8)
     ]
 
     # for each layer, we evaluate the pressure based on whether the
@@ -1634,21 +1643,21 @@ def compute_pressure_low_altitude_zero_gradient(
 
     Parameters
     ----------
-    h: :class:`~pint.Quantity`
+    h: quantity
         Geopotential height.
 
-    hb: :class:`~pint.Quantity`
+    hb: quantity
         Geopotential height at the bottom of the layer.
 
-    pb: :class:`~pint.Quantity`
+    pb: quantity
         Pressure at the bottom of the layer.
 
-    tb: :class:`~pint.Quantity`
+    tb: quantity
         Temperature at the bottom of the layer.
 
     Returns
     -------
-    :class:`~pint.Quantity`
+    quantity
         Pressure.
     """
     return pb * np.exp(-G0 * M0 * (h - hb) / (R * tb))
@@ -1665,24 +1674,24 @@ def compute_pressure_low_altitude_non_zero_gradient(
 
     Parameters
     ----------
-    h: :class:`~pint.Quantity`
+    h: quantity
         Geopotential height.
 
-    hb: :class:`~pint.Quantity`
+    hb: quantity
         Geopotential height at the bottom of the layer.
 
-    pb: :class:`~pint.Quantity`
+    pb: quantity
         Pressure at the bottom of the layer.
 
-    tb: :class:`~pint.Quantity`
+    tb: quantity
         Temperature at the bottom of the layer.
 
-    lkb: :class:`~pint.Quantity`
+    lkb: quantity
         Temperature gradient in the layer.
 
     Returns
     -------
-    :class:`~pint.Quantity`
+    quantity
         Pressure.
     """
     return pb * np.power(tb / (tb + lkb * (h - hb)), G0 * M0 / (R * lkb))
@@ -1696,24 +1705,24 @@ def compute_temperature_low_altitude(
 
     Parameters
     ----------
-    h: :class:`~pint.Quantity`
-        Geopotential height values.
+    h: quantity
+        Geopotential height.
 
-    tb: :class:`~pint.Quantity`
-        Levels temperature values.
+    tb: quantity
+        Levels temperature.
 
     Returns
     -------
-    :class:`~pint.Quantity`
+    quantity
         Temperature.
     """
     # we create a mask for each layer
     h_units = ureg.m
     masks = [
-        ma.masked_inside(
+        ma.masked_inside(  # type: ignore
             h.m_as(h_units), H[i - 1].m_as(h_units), H[i].m_as(h_units)
         ).mask
-        for i in range(1, 8)  # type: ignore
+        for i in range(1, 8)
     ]
 
     # for each layer, we evaluate the pressure based on whether the
@@ -1733,12 +1742,12 @@ def to_altitude(h: pint.Quantity) -> pint.Quantity:
 
     Parameters
     ----------
-    h: :class:`~pint.Quantity`
+    h: quantity
         Geopotential altitude.
 
     Returns
     -------
-    :class:`~pint.Quantity`
+    quantity
         Altitude.
     """
     return R0 * h / (R0 - h)
@@ -1749,12 +1758,12 @@ def to_geopotential_height(z: pint.Quantity) -> pint.Quantity:
 
     Parameters
     ----------
-    z: :class:`~pint.Quantity`
+    z: quantity
         Altitude.
 
     Returns
     -------
-    :class:`~pint.Quantity`
+    quantity
         Geopotential height.
     """
     return R0 * z / (R0 + z)
@@ -1765,12 +1774,12 @@ def compute_gravity(z: pint.Quantity) -> pint.Quantity:
 
     Parameters
     ----------
-    z : :class:`~pint.Quantity`
+    z : quantity
         Altitude.
 
     Returns
     -------
-    :class:`~pint.Quantity`
+    quantity
         Gravity.
     """
     return G0 * np.power((R0 / (R0 + z)), 2.0)

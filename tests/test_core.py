@@ -24,7 +24,8 @@ from ussa1976.core import O_7
 from ussa1976.core import SPECIES
 from ussa1976.core import to_altitude
 from ussa1976.core import VARIABLES
-from ussa1976.units import to_quantity, ureg
+from ussa1976.units import to_quantity
+from ussa1976.units import ureg
 
 
 def test_make() -> None:
@@ -316,11 +317,6 @@ def test_compute_levels_temperature_and_pressure_low_altitude() -> None:
     assert np.allclose(pb, level_pressure, rtol=1e-3)
 
 
-def rtol(v: pint.Quantity, ref: pint.Quantity) -> npt.NDArray[np.float64]:
-    """Compute a relative tolerance."""
-    return (np.abs(v - ref) / ref).m_as(ureg.dimensionless)
-
-
 def test_compute_number_density() -> None:
     """Computes correct number density values at arbitrary level altitudes.
 
@@ -578,4 +574,4 @@ def test_compute_temperature_gradient_high_altitude() -> None:
     """Raises ValueError when altitude is out of bounds."""
     with pytest.raises(ValueError):
         z = 1300 * ureg.km
-        compute_temperature_gradient_high_altitude(altitude=z)
+        compute_temperature_gradient_high_altitude(z=z)

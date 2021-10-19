@@ -1,3 +1,4 @@
 [darglint]
 docstring_style = numpy
 strictness = short
+ignore = DAR103

@@ -21,3 +21,12 @@ intersphinx_mapping = {
     "pint": ("https://pint.readthedocs.io/en/stable/", None),
     "xarray": ("http://xarray.pydata.org/en/stable/", None),
 }
+
+napoleon_preprocess_types = True
+napoleon_type_aliases = {
+    "callable": ":py:func:`callable`",
+    "ndarray": "~numpy.ndarray",
+    "DataArray": "~xarray.DataArray",
+    "Dataset": "~xarray.Dataset",
+    "quantity": ":class:`quantity <pint.Quantity>`",
+}

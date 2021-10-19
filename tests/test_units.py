@@ -3,7 +3,8 @@ import numpy as np
 import pytest
 import xarray as xr
 
-from ussa1976.units import to_quantity, ureg
+from ussa1976.units import to_quantity
+from ussa1976.units import ureg
 
 
 @pytest.fixture

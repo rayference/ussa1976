@@ -6,8 +6,8 @@ ureg = pint.UnitRegistry()
 
 
 def to_quantity(da: xr.DataArray) -> pint.Quantity:
-    """
-    Converts a :class:`~xarray.DataArray` to a :class:`~pint.Quantity`.
+    """Convert a DataArray to a quantity.
+
     The array's ``attrs`` metadata mapping must contain a ``units`` field.
 
     Parameters
