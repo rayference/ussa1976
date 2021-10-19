@@ -111,11 +111,11 @@ ALPHA = {
 }
 A = {
     "N2": None,
-    "O": 6.986e20 / ureg.meter / ureg.second,  # [m^-1*s^-1]
-    "O2": 4.863e20 / ureg.meter / ureg.second,  # [m^-1*s^-1]
-    "Ar": 4.487e20 / ureg.meter / ureg.second,  # [m^-1*s^-1]
-    "He": 1.7e21 / ureg.meter / ureg.second,  # [m^-1*s^-1]
-    "H": 3.305e21 / ureg.meter / ureg.second,  # [m^-1*s^-1]
+    "O": 6.986e20 / ureg.meter / ureg.second,
+    "O2": 4.863e20 / ureg.meter / ureg.second,
+    "Ar": 4.487e20 / ureg.meter / ureg.second,
+    "He": 1.7e21 / ureg.meter / ureg.second,
+    "H": 3.305e21 / ureg.meter / ureg.second,
 }
 B = {
     "N2": None,
@@ -128,7 +128,6 @@ B = {
 
 # Eddy diffusion coefficients
 K_7 = 1.2e2 * ureg.meter ** 2 / ureg.second
-# K_10 = 0.0 * ureg.meter ** 2 / ureg.second
 
 # Vertical transport constants of the individual species present above 86 km
 Q1 = {
@@ -163,11 +162,10 @@ Z7 = 86.0 * ureg.kilometer
 Z8 = 91.0 * ureg.kilometer
 Z9 = 110.0 * ureg.kilometer
 Z10 = 120.0 * ureg.kilometer
-# Z11 = 500.0 * ureg.kilometer
 Z12 = 1000.0 * ureg.kilometer
 
 # Temperature at the different levels above 86 km
-T7 = 186.8673 * ureg.kelvin  # [K]
+T7 = 186.8673 * ureg.kelvin
 T9 = 240.0 * ureg.kelvin
 T10 = 360.0 * ureg.kelvin
 T11 = 999.2356 * ureg.kelvin
