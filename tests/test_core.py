@@ -483,13 +483,15 @@ def test_compute_number_density() -> None:
 
     n = compute_number_densities_high_altitude(altitudes=altitudes)
 
-    assert np.allclose(n["N2"], values["N2"], rtol=0.01)
+    assert np.allclose(to_quantity(n.sel(species="N2")), values["N2"], rtol=0.01)
     # TODO: investigate the poor relative tolerance that is achieved here
-    assert np.allclose(n["O"], values["O"], rtol=0.1)
-    assert np.allclose(n["O2"], values["O2"], rtol=0.01)
-    assert np.allclose(n["Ar"], values["Ar"], rtol=0.01)
-    assert np.allclose(n["He"], values["He"], rtol=0.01)
-    assert np.allclose(n["H"][mask], values["H"][mask], rtol=0.01)
+    assert np.allclose(to_quantity(n.sel(species="O")), values["O"], rtol=0.1)
+    assert np.allclose(to_quantity(n.sel(species="O2")), values["O2"], rtol=0.01)
+    assert np.allclose(to_quantity(n.sel(species="Ar")), values["Ar"], rtol=0.01)
+    assert np.allclose(to_quantity(n.sel(species="He")), values["He"], rtol=0.01)
+    assert np.allclose(
+        to_quantity(n.sel(species="H"))[mask], values["H"][mask], rtol=0.01
+    )
 
 
 def test_compute_mean_molar_mass() -> None:

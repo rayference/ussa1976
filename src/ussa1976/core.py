@@ -606,7 +606,10 @@ def compute_high_altitude(
     z = ureg.Quantity(altitudes.values, "m")
     n = compute_number_densities_high_altitude(z)
     species = ["N2", "O", "O2", "Ar", "He", "H"]
-    ni = np.array([n[s].m_as(1 / ureg.m ** 3) for s in species]) / ureg.m ** 3
+    ni = (
+        np.array([to_quantity(n.sel(species=s)).m_as(1 / ureg.m ** 3) for s in species])
+        / ureg.m ** 3
+    )
     n_tot = np.sum(ni, axis=0)
     fi = ni / n_tot[np.newaxis, :]
     mi = (
@@ -627,7 +630,9 @@ def compute_high_altitude(
 
     for i, s in enumerate(SPECIES):
         if s in species:
-            ds["n"][i].loc[dict(z=altitudes)] = n[s].m_as(UNITS["n"])
+            ds["n"][i].loc[dict(z=altitudes)] = to_quantity(n.sel(species=s)).m_as(
+                UNITS["n"]
+            )
 
     ds["rho"].loc[dict(z=altitudes)] = rho.m_as(UNITS["rho"])
     ds["mv"].loc[dict(z=altitudes)] = (NA / n_tot).m_as(UNITS["mv"])
@@ -736,7 +741,7 @@ def compute_levels_temperature_and_pressure_low_altitude() -> t.Tuple[
 
 def compute_number_densities_high_altitude(
     altitudes: pint.Quantity,
-) -> t.Dict[str, pint.Quantity]:
+) -> xr.DataArray:
     """Compute number density of individual species in high-altitude region.
 
     Parameters
@@ -746,7 +751,7 @@ def compute_number_densities_high_altitude(
 
     Returns
     -------
-    dict
+    DataArray
         Number densities of the individual species and total number density at
         the given altitudes.
 
@@ -756,29 +761,6 @@ def compute_number_densities_high_altitude(
     integral as well as for the computation of the number densities of the
     individual species. This gridded data is then interpolated at the query
     ``altitudes`` using a linear interpolation scheme in logarithmic space.
-
-    The number densities of the individual species are stored in a single
-    2-D array where the first dimension is the gas species and the second
-    dimension is the altitude. The species are in the following order:
-
-    .. list-table:: Title
-       :widths: 50 50
-       :header-rows: 1
-
-       * - Row
-         - Species
-       * - 0
-         - N2
-       * - 1
-         - O
-       * - 2
-         - O2
-       * - 3
-         - Ar
-       * - 4
-         - He
-       * - 5
-         - H
     """
     # altitude grid
     grid = (
@@ -793,27 +775,27 @@ def compute_number_densities_high_altitude(
             )
         )
         * ureg.km
-    )  # [km]
+    )
 
     # pre-computed variables
-    m = compute_mean_molar_mass_high_altitude(z=grid)  # [kg/mol]
-    g = compute_gravity(z=grid)  # [m / s^2]
-    t = compute_temperature_high_altitude(grid)  # [K]
-    dt_dz = compute_temperature_gradient_high_altitude(z=grid)  # [K/m]
+    m = compute_mean_molar_mass_high_altitude(z=grid)
+    g = compute_gravity(z=grid)
+    t = compute_temperature_high_altitude(grid)
+    dt_dz = compute_temperature_gradient_high_altitude(z=grid)
     below_115 = grid.m_as(ureg.km) < 115.0
-    k = eddy_diffusion_coefficient(grid[below_115])  # [m^2/s]
+    k = eddy_diffusion_coefficient(grid[below_115])
 
     n_grid = {}
 
     # molecular nitrogen
-    y = m * g / (R * t)  # [m^-1]
+    y = m * g / (R * t)
     n_grid["N2"] = (
         N2_7
         * (T7 / t)
         * np.exp(
             -cumulative_trapezoid(y.m_as(1 / ureg.m), grid.m_as(ureg.m), initial=0.0)
         )
-    )  # the factor 1000 is to convert km to m
+    )
 
     # atomic oxygen
     d = thermal_diffusion_coefficient(
@@ -899,7 +881,6 @@ def compute_number_densities_high_altitude(
     alpha = ALPHA["H"]
     _tau = tau_function(grid[mask], below_500=True)
     y = (PHI / d) * np.power(t[mask] / T11, 1 + alpha) * np.exp(_tau)
-    print(y.units)
     integral_values = (
         cumulative_trapezoid(
             y[::-1].m_as(1 / ureg.m ** 4), grid[mask][::-1].m_as(ureg.m), initial=0.0
@@ -938,7 +919,17 @@ def compute_number_densities_high_altitude(
     )
     n["H"] = np.concatenate((n_h_below_150, n_h_above_150))  # type: ignore
 
-    return n
+    n_concat = np.array([n[species].m_as(ureg.m ** -3) for species in n]) * ureg.m ** -3
+
+    return xr.DataArray(
+        n_concat.magnitude,
+        dims=["species", "z"],
+        coords={
+            "species": ("species", [s for s in n]),
+            "z": ("z", altitudes.magnitude, dict(units=f"{altitudes.units:~P}")),
+        },
+        attrs=dict(units=f"{n_concat.units:~P}"),
+    )
 
 
 def compute_mean_molar_mass_high_altitude(
