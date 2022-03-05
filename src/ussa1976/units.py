@@ -5,7 +5,7 @@ import xarray as xr
 ureg = pint.UnitRegistry()
 
 
-def to_quantity(da: xr.DataArray) -> pint.Quantity:
+def to_quantity(da: xr.DataArray) -> pint.Quantity:  # type: ignore[type-arg]
     """Convert a DataArray to a quantity.
 
     The array's ``attrs`` metadata mapping must contain a ``units`` field.
