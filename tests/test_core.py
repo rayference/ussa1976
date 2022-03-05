@@ -6,7 +6,11 @@ import pytest
 import xarray as xr
 
 from ussa1976.constants import AR_7
-from ussa1976.constants import AR_7
+from ussa1976.constants import H
+from ussa1976.constants import M
+from ussa1976.constants import M0
+from ussa1976.constants import O2_7
+from ussa1976.constants import O_7
 from ussa1976.core import compute_high_altitude
 from ussa1976.core import compute_levels_temperature_and_pressure_low_altitude
 from ussa1976.core import compute_low_altitude
@@ -15,13 +19,8 @@ from ussa1976.core import compute_number_densities_high_altitude
 from ussa1976.core import compute_temperature_gradient_high_altitude
 from ussa1976.core import compute_temperature_high_altitude
 from ussa1976.core import create
-from ussa1976.constants import H
 from ussa1976.core import init_data_set
-from ussa1976.constants import M
-from ussa1976.constants import M0
 from ussa1976.core import make
-from ussa1976.constants import O2_7
-from ussa1976.constants import O_7
 from ussa1976.core import SPECIES
 from ussa1976.core import to_altitude
 from ussa1976.core import VARIABLES
@@ -152,7 +151,7 @@ def test_create_below_86_km_layers_boundary_altitudes() -> None:
             ]
         )
         * ureg.kg
-        / ureg.m ** 3
+        / ureg.m**3
     )
 
     assert np.allclose(to_quantity(ds.t), level_temperature, rtol=1e-4)
@@ -255,7 +254,7 @@ def test_create_below_86_km_arbitrary_altitudes() -> None:
             ]
         )
         * ureg.kg
-        / ureg.m ** 3
+        / ureg.m**3
     )
 
     z = to_altitude(h)
@@ -374,10 +373,10 @@ def test_compute_number_density() -> None:
                 4.626e5,
             ]
         )
-        / ureg.m ** 3,
+        / ureg.m**3,
         "O": np.array(
             [
-                O_7.m_as(1 / ureg.m ** 3),
+                O_7.m_as(1 / ureg.m**3),
                 2.443e17,
                 4.365e17,
                 4.298e17,
@@ -395,10 +394,10 @@ def test_compute_number_density() -> None:
                 9.562e9,
             ]
         )
-        / ureg.m ** 3,
+        / ureg.m**3,
         "O2": np.array(
             [
-                O2_7.m_as(1 / ureg.m ** 3),
+                O2_7.m_as(1 / ureg.m**3),
                 1.479e19,
                 5.83e18,
                 2.151e18,
@@ -416,10 +415,10 @@ def test_compute_number_density() -> None:
                 1.251e3,
             ]
         )
-        / ureg.m ** 3,
+        / ureg.m**3,
         "Ar": np.array(
             [
-                AR_7.m_as(1 / ureg.m ** 3),
+                AR_7.m_as(1 / ureg.m**3),
                 6.574e17,
                 2.583e17,
                 9.501e16,
@@ -437,7 +436,7 @@ def test_compute_number_density() -> None:
                 2.188e-2,
             ]
         )
-        / ureg.m ** 3,
+        / ureg.m**3,
         "He": np.array(
             [
                 7.582e14,
@@ -458,7 +457,7 @@ def test_compute_number_density() -> None:
                 4.850e11,
             ]
         )
-        / ureg.m ** 3,
+        / ureg.m**3,
         "H": np.array(
             [
                 0.0,
@@ -479,7 +478,7 @@ def test_compute_number_density() -> None:
                 4.967e10,
             ]
         )
-        / ureg.m ** 3,
+        / ureg.m**3,
     }
 
     n = compute_number_densities_high_altitude(altitudes=altitudes)
