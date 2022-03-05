@@ -454,8 +454,8 @@ def compute_high_altitude(
     n = compute_number_densities_high_altitude(z)
     species = ["N2", "O", "O2", "Ar", "He", "H"]
     ni = (
-        np.array([to_quantity(n.sel(species=s)).m_as(1 / ureg.m ** 3) for s in species])
-        / ureg.m ** 3
+        np.array([to_quantity(n.sel(species=s)).m_as(1 / ureg.m**3) for s in species])
+        / ureg.m**3
     )
     n_tot = np.sum(ni, axis=0)
     fi = ni / n_tot[np.newaxis, :]
@@ -730,9 +730,9 @@ def compute_number_densities_high_altitude(
     y = (PHI / d) * np.power(t[mask] / T11, 1 + alpha) * np.exp(_tau)
     integral_values = (
         cumulative_trapezoid(
-            y[::-1].m_as(1 / ureg.m ** 4), grid[mask][::-1].m_as(ureg.m), initial=0.0
+            y[::-1].m_as(1 / ureg.m**4), grid[mask][::-1].m_as(ureg.m), initial=0.0
         )
-        / ureg.m ** 3
+        / ureg.m**3
     )
     integral_values = integral_values[::-1]
     n_below_500 = (
@@ -748,25 +748,25 @@ def compute_number_densities_high_altitude(
     n_grid["H"] = np.concatenate((n_below_500, n_above_500))  # type: ignore
 
     n = {
-        s: log_interp1d(grid.m_as(ureg.m), n_grid[s].m_as(1 / ureg.m ** 3))(
+        s: log_interp1d(grid.m_as(ureg.m), n_grid[s].m_as(1 / ureg.m**3))(
             altitudes.m_as(ureg.m)
         )
-        / ureg.m ** 3
+        / ureg.m**3
         for s in ["N2", "O", "O2", "Ar", "He"]
     }
 
     # Below 150 km, the number density of atomic hydrogen is zero.
-    n_h_below_150 = np.zeros(len(altitudes[altitudes < 150.0 * ureg.km])) / ureg.m ** 3
+    n_h_below_150 = np.zeros(len(altitudes[altitudes < 150.0 * ureg.km])) / ureg.m**3
     n_h_above_150 = (
         log_interp1d(
             grid.m_as(ureg.km)[grid >= 150.0 * ureg.km],
-            n_grid["H"].m_as(1 / ureg.m ** 3),
+            n_grid["H"].m_as(1 / ureg.m**3),
         )(altitudes.m_as(ureg.km)[altitudes >= 150.0 * ureg.km])
-        / ureg.m ** 3
+        / ureg.m**3
     )
     n["H"] = np.concatenate((n_h_below_150, n_h_above_150))  # type: ignore
 
-    n_concat = np.array([n[species].m_as(ureg.m ** -3) for species in n]) * ureg.m ** -3
+    n_concat = np.array([n[species].m_as(ureg.m**-3) for species in n]) * ureg.m**-3
 
     return xr.DataArray(
         n_concat.magnitude,
@@ -1244,9 +1244,9 @@ def velocity_term_hump(
     Valid in the altitude region: 86 km :math:`\leq z \leq` 150 km.
     """
     return q1 * np.square(z - u1) * np.exp(
-        -w1.m_as(1 / ureg.km ** 3) * np.power((z - u1).m_as(ureg.km), 3.0)
+        -w1.m_as(1 / ureg.km**3) * np.power((z - u1).m_as(ureg.km), 3.0)
     ) + q2 * np.square(u2 - z) * np.exp(
-        -w2.m_as(1 / ureg.km ** 3) * np.power((u2 - z).m_as(ureg.km), 3.0)
+        -w2.m_as(1 / ureg.km**3) * np.power((u2 - z).m_as(ureg.km), 3.0)
     )
 
 
@@ -1284,7 +1284,7 @@ def velocity_term_no_hump(
     return (
         q1
         * np.square(z - u1)
-        * np.exp(-w1.m_as(1 / ureg.km ** 3) * np.power((z - u1).m_as(ureg.km), 3.0))
+        * np.exp(-w1.m_as(1 / ureg.km**3) * np.power((z - u1).m_as(ureg.km), 3.0))
     )
 
 

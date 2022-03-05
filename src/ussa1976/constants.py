@@ -51,7 +51,7 @@ F = {
 }
 
 # Sea level gravity
-G0 = 9.80665 * ureg.m / ureg.s ** 2
+G0 = 9.80665 * ureg.m / ureg.s**2
 
 # Geopotential altitudes of the layers' boundaries (below 86 km)
 H = (
@@ -96,7 +96,7 @@ R0 = 6.356766e6 * ureg.meter
 # Temperature at sea level
 T0 = 288.15 * ureg.kelvin
 S = 110.4 * ureg.kelvin
-BETA = 1.458e6 * ureg.kilogram / (ureg.meter * ureg.second * ureg.kelvin ** 0.5)
+BETA = 1.458e6 * ureg.kilogram / (ureg.meter * ureg.second * ureg.kelvin**0.5)
 GAMMA = 1.40 * ureg.dimensionless
 SIGMA = 3.65e-10 * ureg.meter
 
@@ -127,20 +127,20 @@ B = {
 }
 
 # Eddy diffusion coefficients
-K_7 = 1.2e2 * ureg.meter ** 2 / ureg.second
+K_7 = 1.2e2 * ureg.meter**2 / ureg.second
 
 # Vertical transport constants of the individual species present above 86 km
 Q1 = {
-    "O": -5.809644e-4 / ureg.kilometer ** 3,
-    "O2": 1.366212e-4 / ureg.kilometer ** 3,
-    "Ar": 9.434079e-5 / ureg.kilometer ** 3,
-    "He": -2.457369e-4 / ureg.kilometer ** 3,
+    "O": -5.809644e-4 / ureg.kilometer**3,
+    "O2": 1.366212e-4 / ureg.kilometer**3,
+    "Ar": 9.434079e-5 / ureg.kilometer**3,
+    "He": -2.457369e-4 / ureg.kilometer**3,
 }
 Q2 = {
-    "O": -3.416248e-3 / ureg.kilometer ** 3,  # warning: above 97 km, Q2 = 0.
-    "O2": 0.0 / ureg.kilometer ** 3,
-    "Ar": 0.0 / ureg.kilometer ** 3,
-    "He": 0.0 / ureg.kilometer ** 3,
+    "O": -3.416248e-3 / ureg.kilometer**3,  # warning: above 97 km, Q2 = 0.
+    "O2": 0.0 / ureg.kilometer**3,
+    "Ar": 0.0 / ureg.kilometer**3,
+    "He": 0.0 / ureg.kilometer**3,
 }
 U1 = {
     "O": 56.90311 * ureg.kilometer,
@@ -150,12 +150,12 @@ U1 = {
 }
 U2 = {"O": 97.0 * ureg.kilometer, "O2": None, "Ar": None, "He": None}
 W1 = {
-    "O": 2.706240e-5 / ureg.kilometer ** 3,
-    "O2": 8.333333e-5 / ureg.kilometer ** 3,
-    "Ar": 8.333333e-5 / ureg.kilometer ** 3,
-    "He": 6.666667e-4 / ureg.kilometer ** 3,
+    "O": 2.706240e-5 / ureg.kilometer**3,
+    "O2": 8.333333e-5 / ureg.kilometer**3,
+    "Ar": 8.333333e-5 / ureg.kilometer**3,
+    "He": 6.666667e-4 / ureg.kilometer**3,
 }
-W2 = {"O": 5.008765e-4 / ureg.kilometer ** 3, "O2": None, "Ar": None, "He": None}
+W2 = {"O": 5.008765e-4 / ureg.kilometer**3, "O2": None, "Ar": None, "He": None}
 
 # Altitudes of the levels delimiting 5 layers above 86 km
 Z7 = 86.0 * ureg.kilometer
@@ -177,22 +177,22 @@ LK7 = 0.0 * ureg.kelvin / ureg.kilometer
 LK9 = 12.0 * ureg.kelvin / ureg.kilometer
 
 # Molecular nitrogen at altitude = Z7
-N2_7 = 1.129794e20 / ureg.meter ** 3
+N2_7 = 1.129794e20 / ureg.meter**3
 
 # Atomic oxygen at altitude = Z7
-O_7 = 8.6e16 / ureg.meter ** 3
+O_7 = 8.6e16 / ureg.meter**3
 
 # Molecular oxygen at altitude = Z7
-O2_7 = 3.030898e19 / ureg.meter ** 3
+O2_7 = 3.030898e19 / ureg.meter**3
 
 # Argon at altitude = Z7
-AR_7 = 1.351400e18 / ureg.meter ** 3
+AR_7 = 1.351400e18 / ureg.meter**3
 
 # Helium at altitude = Z7 (assumes typo at page 13)
-HE_7 = 7.5817e14 / ureg.meter ** 3
+HE_7 = 7.5817e14 / ureg.meter**3
 
 # Hydrogen at altitude = Z7
-H_11 = 8.0e10 / ureg.meter ** 3
+H_11 = 8.0e10 / ureg.meter**3
 
 # Vertical flux
-PHI = 7.2e11 / ureg.meter ** 2 / ureg.second
+PHI = 7.2e11 / ureg.meter**2 / ureg.second
