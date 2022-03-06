@@ -1,6 +1,5 @@
 """Test cases for the core module."""
 import numpy as np
-import numpy.typing as npt
 import pint
 import pytest
 import xarray as xr
@@ -101,7 +100,9 @@ def test_create(test_altitudes: pint.Quantity) -> None:  # type: ignore[type-arg
     )
 
 
-def test_create_invalid_variables(test_altitudes: pint.Quantity) -> None:  # type: ignore[type-arg]
+def test_create_invalid_variables(
+    test_altitudes: pint.Quantity,  # type: ignore[type-arg]
+) -> None:
     """Raises when invalid variables are given."""
     invalid_variables = ["p", "t", "invalid", "n"]
     with pytest.raises(ValueError):
