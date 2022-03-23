@@ -74,7 +74,7 @@ def test_make_invalid_levels() -> None:
 @pytest.fixture
 def test_altitudes() -> npt.NDArray[np.float64]:
     """Test altitudes fixture."""
-    return np.linspace(0.0, 100000.0, 101)
+    return np.linspace(0.0, 100e3, 101)
 
 
 def test_create(test_altitudes: npt.NDArray[np.float64]) -> None:
@@ -90,9 +90,8 @@ def test_create(test_altitudes: npt.NDArray[np.float64]) -> None:
     assert "species" in ds.dims
     assert len(ds.coords) == 2
     assert np.all(ds.z.values == test_altitudes)
-    assert [s for s in ds.species] == [s for s in SPECIES]
-    for var in variables:
-        assert var in ds
+    assert list(ds.species.values) == SPECIES
+    assert all([var in ds for var in variables])
     assert all(
         [
             x in ds.attrs
@@ -113,10 +112,10 @@ def test_create_invalid_variables(
 def test_create_invalid_z() -> None:
     """Raises when invalid altitudes values are given."""
     with pytest.raises(ValueError):
-        create(z=np.array([-5.0]))
+        create(z=np.array([-5.0]))  # value is negative
 
     with pytest.raises(ValueError):
-        create(z=np.array([1000001.0]))
+        create(z=np.array([1001e3]))  # value is larger than 1000 km
 
 
 def test_create_below_86_km_layers_boundary_altitudes() -> None:
@@ -248,10 +247,18 @@ def test_create_below_86_km_arbitrary_altitudes() -> None:
     assert np.allclose(ds.rho.values, mass_densities, rtol=1e-4)
 
 
-def test_init_data_set() -> None:
+@pytest.mark.parametrize(
+    "z_bounds",
+    [
+        (0.0, 50e3),
+        (120e3, 650e3),
+        (70e3, 100e3),
+    ],
+)
+def test_init_data_set(z_bounds: t.Tuple[float]) -> None:
     """Data set is initialised.
 
-    Expected data variables are created and fill with nan values.
+    Expected data variables are created and filled with nan values.
     Expected dimensions and coordinates are present.
     """
 
@@ -262,22 +269,12 @@ def test_init_data_set() -> None:
             assert np.isnan(ds[var].values).all()
 
         assert ds.n.values.ndim == 2
-        assert all(
-            ds.species.values
-            == ["N2", "O2", "Ar", "CO2", "Ne", "He", "Kr", "Xe", "CH4", "H2", "O", "H"]
-        )
+        assert list(ds.species.values) == SPECIES
 
-    z1 = np.linspace(0.0, 50000.0)
-    ds1 = init_data_set(z1)
-    check_data_set(ds1)
-
-    z2 = np.linspace(120000.0, 650000.0)
-    ds2 = init_data_set(z2)
-    check_data_set(ds2)
-
-    z3 = np.linspace(70000.0, 100000.0)
-    ds3 = init_data_set(z3)
-    check_data_set(ds3)
+    z_start, z_stop = z_bounds
+    z = np.linspace(z_start, z_stop)
+    ds = init_data_set(z=z)
+    check_data_set(ds)
 
 
 def test_compute_levels_temperature_and_pressure_low_altitude() -> None:
@@ -470,11 +467,6 @@ def test_compute_mean_molar_mass() -> None:
 
     The correct values are taken from :cite:`NASA1976USStandardAtmosphere`.
     """
-    # test call with scalar altitude
-    assert compute_mean_molar_mass_high_altitude(z=np.array([90e3])) == M0
-    assert compute_mean_molar_mass_high_altitude(z=np.array([200e3])) == M["N2"]
-
-    # test call with array of altitudes
     z: npt.NDArray[np.float64] = np.linspace(86e3, 1000e3, 915)
     assert np.allclose(
         compute_mean_molar_mass_high_altitude(z=z),
@@ -487,18 +479,12 @@ def test_compute_temperature_above_86_km() -> None:
 
     The correct values are taken from :cite:`NASA1976USStandardAtmosphere`.
     """
-    # single altitude
-    assert np.isclose(
-        compute_temperature_high_altitude(altitude=np.array([90e3])),
-        186.87,
-        rtol=1e-3,
+    z: npt.NDArray[np.float64] = np.array(
+        [90e3, 100e3, 110e3, 120e3, 130e3, 200e3, 500e3]
     )
-
-    # array of altitudes
-    z: npt.NDArray[np.float64] = np.array([100e3, 110e3, 120e3, 130e3, 200e3, 500e3])
     assert np.allclose(
         compute_temperature_high_altitude(altitude=z),
-        np.array([195.08, 240.00, 360.0, 469.27, 854.56, 999.24]),
+        np.array([186.87, 195.08, 240.00, 360.0, 469.27, 854.56, 999.24]),
         rtol=1e-3,
     )
 
@@ -506,7 +492,7 @@ def test_compute_temperature_above_86_km() -> None:
 def test_compute_temperature_above_86_km_invalid_altitudes() -> None:
     """Raises when altitude is out of range."""
     with pytest.raises(ValueError):
-        compute_temperature_high_altitude(altitude=np.array([10e3]))
+        compute_temperature_high_altitude(altitude=np.array([10e3]))  # 10 km < 86 km
 
 
 def test_compute_high_altitude_no_mask() -> None:
