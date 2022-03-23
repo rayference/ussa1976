@@ -260,6 +260,11 @@ def test_init_data_set(z_bounds: t.Tuple[float]) -> None:
 
     Expected data variables are created and filled with nan values.
     Expected dimensions and coordinates are present.
+
+    Parameters
+    ----------
+    z_bounds: tuple[float]
+        Altitude bound values.
     """
 
     def check_data_set(ds: xr.Dataset) -> None:
