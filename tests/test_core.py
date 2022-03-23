@@ -255,7 +255,7 @@ def test_create_below_86_km_arbitrary_altitudes() -> None:
         (70e3, 100e3),
     ],
 )
-def test_init_data_set(z_bounds: t.Tuple[float]) -> None:
+def test_init_data_set(z_bounds: t.Tuple[float, float]) -> None:
     """Data set is initialised.
 
     Expected data variables are created and filled with nan values.
@@ -263,7 +263,7 @@ def test_init_data_set(z_bounds: t.Tuple[float]) -> None:
 
     Parameters
     ----------
-    z_bounds: tuple[float]
+    z_bounds: tuple[float, float]
         Altitude bound values.
     """
 
