@@ -1,4 +1,4 @@
 sphinx==3.5.2
 sphinx-click==2.6.0
-sphinxcontrib_bibtex==2.3.0
+sphinxcontrib_bibtex==2.4.1
 furo==2021.11.23
