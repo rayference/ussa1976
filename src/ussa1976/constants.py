@@ -4,17 +4,17 @@ As much as possible, constants' names are chosen to be as close as possible to
 the notations used in :cite:`NASA1976USStandardAtmosphere`.
 
 Constants' values are evaluated in the following set of units:
-    {
-        length: meter,
-        time: second,
-        mass: kilogram,
-        temperature: kelvin,
-        quantity of matter: mole,
-    }
+
+    * length: meter
+    * time: second
+    * mass: kilogram
+    * temperature: kelvin
+    * quantity of matter: mole
 
 Note the following derived units:
-    1 Pa = 1 kg * m^-1 * s^-2
-    1 Joule = 1 kg * m^2 * s^-2
+
+    * 1 Pa = 1 kg * m^-1 * s^-2
+    * 1 Joule = 1 kg * m^2 * s^-2
 """
 import numpy as np
 import numpy.typing as npt
