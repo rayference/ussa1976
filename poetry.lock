@@ -1091,7 +1091,7 @@ python-versions = ">=3.8"
 name = "packaging"
 version = "21.3"
 description = "Core utilities for Python packages"
-category = "main"
+category = "dev"
 optional = false
 python-versions = ">=3.6"
 
@@ -1195,19 +1195,16 @@ python-versions = ">=3.7"
 
 [[package]]
 name = "pint"
-version = "0.18"
+version = "0.19.2"
 description = "Physical quantities module"
 category = "main"
 optional = false
-python-versions = ">=3.7"
-
-[package.dependencies]
-packaging = "*"
+python-versions = ">=3.8"
 
 [package.extras]
-numpy = ["numpy (>=1.17)"]
+numpy = ["numpy (>=1.19.5)"]
 test = ["pytest", "pytest-mpl", "pytest-cov", "pytest-subtests"]
-uncertainties = ["uncertainties (>=3.0)"]
+uncertainties = ["uncertainties (>=3.1.6)"]
 
 [[package]]
 name = "platformdirs"
@@ -1399,7 +1396,7 @@ python-versions = ">=3.5"
 name = "pyparsing"
 version = "3.0.7"
 description = "Python parsing module"
-category = "main"
+category = "dev"
 optional = false
 python-versions = ">=3.6"
 
@@ -2800,8 +2797,7 @@ pillow = [
     {file = "Pillow-9.0.1.tar.gz", hash = "sha256:6c8bc8238a7dfdaf7a75f5ec5a663f4173f8c367e5a39f87e720495e1eed75fa"},
 ]
 pint = [
-    {file = "Pint-0.18-py2.py3-none-any.whl", hash = "sha256:4b37f3c470639ea6f96b0026c3364bde30631fa737092bdaf18ad3f4f76f252f"},
-    {file = "Pint-0.18.tar.gz", hash = "sha256:8c4bce884c269051feb7abc69dbfd18403c0c764abc83da132e8a7222f8ba801"},
+    {file = "Pint-0.19.2.tar.gz", hash = "sha256:e1d4989ff510b378dad64f91711e7bdabe5ca78d75b06a18569ac454678c4baf"},
 ]
 platformdirs = [
     {file = "platformdirs-2.5.1-py3-none-any.whl", hash = "sha256:bcae7cab893c2d310a711b70b24efb93334febe65f8de776ee320b517471e227"},
