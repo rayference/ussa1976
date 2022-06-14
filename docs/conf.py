@@ -25,7 +25,7 @@ intersphinx_mapping = {
 napoleon_preprocess_types = True
 napoleon_type_aliases = {
     "callable": ":py:func:`callable`",
-    "ndarray": "~numpy.ndarray",
+    "array": "~numpy.ndarray",
     "DataArray": "~xarray.DataArray",
     "Dataset": "~xarray.Dataset",
     "quantity": ":class:`quantity <pint.Quantity>`",
