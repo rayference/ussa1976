@@ -32,7 +32,7 @@ USSA1976
    :target: https://github.com/psf/black
    :alt: Black
 
-The U.S. Standard Atmosphere 1976 model :cite:`NASA1976USStandardAtmosphere`.
+The U.S. Standard Atmosphere 1976 model.
 
 Features
 --------
