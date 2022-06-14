@@ -12,6 +12,7 @@ from ussa1976.constants import M
 from ussa1976.constants import M0
 from ussa1976.constants import O2_7
 from ussa1976.constants import O_7
+from ussa1976.core import compute
 from ussa1976.core import compute_high_altitude
 from ussa1976.core import compute_levels_temperature_and_pressure_low_altitude
 from ussa1976.core import compute_low_altitude
@@ -19,7 +20,6 @@ from ussa1976.core import compute_mean_molar_mass_high_altitude
 from ussa1976.core import compute_number_densities_high_altitude
 from ussa1976.core import compute_temperature_gradient_high_altitude
 from ussa1976.core import compute_temperature_high_altitude
-from ussa1976.core import create
 from ussa1976.core import init_data_set
 from ussa1976.core import make
 from ussa1976.core import SPECIES
@@ -79,11 +79,11 @@ def test_altitudes() -> npt.NDArray[np.float64]:
 
 def test_create(test_altitudes: npt.NDArray[np.float64]) -> None:
     """Creates a data set with expected data."""
-    ds = create(z=test_altitudes)
+    ds = compute(z=test_altitudes)
     assert all([v in ds.data_vars for v in VARIABLES])
 
     variables = ["p", "t", "n", "n_tot"]
-    ds = create(z=test_altitudes, variables=variables)
+    ds = compute(z=test_altitudes, variables=variables)
 
     assert len(ds.dims) == 2
     assert "z" in ds.dims
@@ -106,16 +106,16 @@ def test_create_invalid_variables(
     """Raises when invalid variables are given."""
     invalid_variables = ["p", "t", "invalid", "n"]
     with pytest.raises(ValueError):
-        create(z=test_altitudes, variables=invalid_variables)
+        compute(z=test_altitudes, variables=invalid_variables)
 
 
 def test_create_invalid_z() -> None:
     """Raises when invalid altitudes values are given."""
     with pytest.raises(ValueError):
-        create(z=np.array([-5.0]))  # value is negative
+        compute(z=np.array([-5.0]))  # value is negative
 
     with pytest.raises(ValueError):
-        create(z=np.array([1001e3]))  # value is larger than 1000 km
+        compute(z=np.array([1001e3]))  # value is larger than 1000 km
 
 
 def test_create_below_86_km_layers_boundary_altitudes() -> None:
@@ -128,7 +128,7 @@ def test_create_below_86_km_layers_boundary_altitudes() -> None:
     values from the table 1 of the U.S. Standard Atmosphere 1976 document.
     """
     z = to_altitude(H)
-    ds = create(z=z, variables=["p", "t", "rho"])
+    ds = compute(z=z, variables=["p", "t", "rho"])
 
     level_temperature: npt.NDArray[np.float64] = np.array(
         [288.15, 216.65, 216.65, 228.65, 270.65, 270.65, 214.65, 186.87]
@@ -240,7 +240,7 @@ def test_create_below_86_km_arbitrary_altitudes() -> None:
     )
 
     z = to_altitude(h)
-    ds = create(z=z, variables=["t", "p", "rho"])
+    ds = compute(z=z, variables=["t", "p", "rho"])
 
     assert np.allclose(ds.t.values, temperatures, rtol=1e-4)
     assert np.allclose(ds.p.values, pressures, rtol=1e-4)
