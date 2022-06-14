@@ -168,8 +168,21 @@ DIMS = {
 }
 
 
+DEFAULT_Z = np.concatenate(
+    [
+        np.arange(0.0, 11000.0, 50.0),
+        np.arange(11000.0, 32000.0, 100.0),
+        np.arange(32000.0, 50000.0, 200.0),
+        np.arange(50000.0, 100000.0, 500.0),
+        np.arange(100000.0, 300000.0, 1000.0),
+        np.arange(300000.0, 500000.0, 2000.0),
+        np.arange(500000.0, 1000001.0, 5000.0),
+    ]
+)
+
+
 def compute(
-    z: npt.NDArray[np.float64],
+    z: npt.NDArray[np.float64] = DEFAULT_Z,
     variables: t.Optional[t.List[str]] = None,
 ) -> xr.Dataset:
     """Compute U.S. Standard Atmosphere 1976 data set on specified altitude grid.
