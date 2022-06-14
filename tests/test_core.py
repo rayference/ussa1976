@@ -21,54 +21,9 @@ from ussa1976.core import compute_number_densities_high_altitude
 from ussa1976.core import compute_temperature_gradient_high_altitude
 from ussa1976.core import compute_temperature_high_altitude
 from ussa1976.core import init_data_set
-from ussa1976.core import make
 from ussa1976.core import SPECIES
 from ussa1976.core import to_altitude
 from ussa1976.core import VARIABLES
-from ussa1976.units import ureg
-
-
-def test_make() -> None:
-    """Returned data set has expected data."""
-    # default constructor
-    profile = make()
-
-    assert profile["z_level"].values[0] == 0.0
-    assert profile["z_level"].values[-1] == 100.0
-    assert profile.dims["z_layer"] == 50
-    assert profile.dims["species"] == 12
-
-    # custom levels altitudes
-    profile = make(levels=ureg.Quantity(np.linspace(2.0, 15.0, 51), "km"))
-
-    assert profile.dims["z_layer"] == 50
-    assert profile["z_level"].values[0] == 2.0
-    assert profile["z_level"].values[-1] == 15.0
-    assert profile.dims["species"] == 12
-
-    # custom number of layers
-    profile = make(levels=ureg.Quantity(np.linspace(0.0, 150.0, 37), "km"))
-
-    assert profile.dims["z_layer"] == 36
-    assert profile["z_level"].values[0] == 0.0
-    assert profile["z_level"].values[-1] == 150.0
-    assert profile.dims["species"] == 12
-
-    profile = make(levels=ureg.Quantity(np.linspace(0.0, 80.0, 2), "km"))
-
-    assert profile.dims["z_layer"] == 1
-    assert profile["z_level"].values[0] == 0.0
-    assert profile["z_level"].values[-1] == 80.0
-    assert profile.dims["species"] == 12
-
-
-def test_make_invalid_levels() -> None:
-    """Raises a ValueError on invalid level altitudes."""
-    with pytest.raises(ValueError):
-        make(levels=np.linspace(-4000, 50000) * ureg.m)
-
-    with pytest.raises(ValueError):
-        make(levels=np.linspace(500.0, 5000000.0) * ureg.m)
 
 
 @pytest.fixture

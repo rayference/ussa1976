@@ -1,8 +1,18 @@
 """
 U.S. Standard Atmosphere 1976 thermophysical model.
 
-U.S. Standard Atmosphere, 1976 thermophysical model according to
-:cite:`NASA1976USStandardAtmosphere`.
+The U.S. Standard Atmosphere 1976 model :cite:`NASA1976USStandardAtmosphere`
+divides the atmosphere into two altitude regions:
+
+1. the low-altitude region, from 0 to 86 kilometers
+2. the high-altitude region, from 86 to 1000 kilometers.
+
+A number of computational functions hereafter are specialised for one or
+the other altitude region and is valid only in that altitude region, not in
+the other.
+Their name include a ``low_altitude`` or a ``high_altitude`` part to reflect
+that they are valid only in the low altitude region and high altitude region,
+respectively.
 """
 import datetime
 import typing as t
@@ -10,7 +20,6 @@ import typing as t
 import numpy as np
 import numpy.ma as ma
 import numpy.typing as npt
-import pint
 import xarray as xr
 from scipy.integrate import cumulative_trapezoid
 from scipy.interpolate import interp1d
@@ -62,109 +71,23 @@ from .constants import Z12
 from .constants import Z7
 from .constants import Z8
 from .constants import Z9
-from .units import ureg
-
-# ------------------------------------------------------------------------------
-#
-# Atmospheric vertical profile data set generator
-#
-# ------------------------------------------------------------------------------
-
-_DEFAULT_LEVELS = np.linspace(0.0, 100.0, 51) * ureg.km
-
-
-def make(
-    levels: pint.Quantity = _DEFAULT_LEVELS,  # type: ignore
-) -> xr.Dataset:
-    """Make U.S. Standard Atmosphere 1976.
-
-    Parameters
-    ----------
-    levels: quantity, optional
-        Level altitudes.
-        The values must be sorted by increasing order.
-        The default levels are 51 linearly spaced values between 0 and 100 km.
-
-        Valid range: 0 to 1000 km.
-
-    Returns
-    -------
-    Dataset
-        Data set holding the values of the pressure, temperature,
-        total number density and number densities of the individual
-        gas species in each layer.
-
-    Raises
-    ------
-    ValueError
-        When levels are out of range.
-
-    Notes
-    -----
-    The pressure, temperature and number densities given in each layer of
-    the altitude mesh are computed at the altitude of the layers centers.
-    In other words, the layer's middle is taken as the altitude
-    representative of the whole layer. For example, in a layer with lower
-    and upper altitudes of 1000 and 2000 m, the thermophysical variables
-    are computed at the altitude of 1500 m.
-    """
-    if np.any(levels > ureg.Quantity(1e6, "m")) or np.any(levels < 0.0):
-        raise ValueError("Levels altitudes must be in [0, 1e6] m.")
-
-    z_layer = (levels[:-1] + levels[1:]) / 2
-
-    # create the data set
-    ds = compute(
-        z=z_layer.m_as("m"),
-        variables=["p", "t", "n", "n_tot"],
-    )
-
-    # derive atmospheric thermophysical properties profile data set
-    thermoprops_ds = (
-        xr.Dataset(
-            data_vars={
-                "p": ds.p,
-                "t": ds.t,
-                "n": ds.n_tot,
-                "mr": ds.n / ds.n_tot,
-            }
-        )
-        .rename_dims({"z": "z_layer"})
-        .reset_coords("z", drop=True)
-    )
-    thermoprops_ds.coords["z_layer"] = (
-        "z_layer",
-        z_layer.magnitude,
-        dict(
-            standard_name="layer_altitude",
-            long_name="layer altitude",
-            units=str(z_layer.units),
-        ),
-    )
-    thermoprops_ds.coords["z_level"] = (
-        "z_level",
-        levels.magnitude,
-        dict(
-            standard_name="level_altitude",
-            long_name="level altitude",
-            units=str(levels.units),
-        ),
-    )
-    thermoprops_ds.attrs = dict(
-        convention="CF-1.8",
-        title="U.S. Standard Atmosphere 1976",
-        history=f"{datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')} - "
-        f"data creation - ussa1976, version {__version__}",
-        source=f"ussa1976, version {__version__}",
-        references="U.S. Standard Atmosphere, 1976, NASA-TM-X-74335, "
-        "NOAA-S/T-76-1562",
-    )
-
-    return thermoprops_ds
 
 
 # List of all gas species
-SPECIES = ["N2", "O2", "Ar", "CO2", "Ne", "He", "Kr", "Xe", "CH4", "H2", "O", "H"]
+SPECIES = [
+    "N2",
+    "O2",
+    "Ar",
+    "CO2",
+    "Ne",
+    "He",
+    "Kr",
+    "Xe",
+    "CH4",
+    "H2",
+    "O",
+    "H",
+]
 
 # List of variables computed by the model
 VARIABLES = [
@@ -243,20 +166,6 @@ DIMS = {
     "nu": "z",
     "kt": "z",
 }
-
-
-# ------------------------------------------------------------------------------
-#
-# Computational functions.
-# The U.S. Standard Atmosphere 1976 model divides the atmosphere into two
-# altitude regions:
-#   1. the low-altitude region, from 0 to 86 kilometers
-#   2. the high-altitude region, from 86 to 1000 kilometers.
-# The majority of computational functions hereafter are specialised for one or
-# the other altitude region and is valid only in that altitude region, not in
-# the other.
-#
-# ------------------------------------------------------------------------------
 
 
 def compute(
