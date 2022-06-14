@@ -114,7 +114,7 @@ def make(
     z_layer = (levels[:-1] + levels[1:]) / 2
 
     # create the data set
-    ds = create(
+    ds = compute(
         z=z_layer.m_as("m"),
         variables=["p", "t", "n", "n_tot"],
     )
@@ -259,11 +259,11 @@ DIMS = {
 # ------------------------------------------------------------------------------
 
 
-def create(
+def compute(
     z: npt.NDArray[np.float64],
     variables: t.Optional[t.List[str]] = None,
 ) -> xr.Dataset:
-    """Create U.S. Standard Atmosphere 1976 data set.
+    """Compute U.S. Standard Atmosphere 1976 data set on specified altitude grid.
 
     Parameters
     ----------
@@ -638,17 +638,14 @@ def compute_number_densities_high_altitude(
         a=A["O"],
         b=B["O"],
     )
-    y = (
-        thermal_diffusion_term_atomic_oxygen(
-            grid,
-            g,
-            t,
-            dt_dz,
-            d,
-            k,
-        )
-        + velocity_term_atomic_oxygen(grid)
-    )
+    y = thermal_diffusion_term_atomic_oxygen(
+        grid,
+        g,
+        t,
+        dt_dz,
+        d,
+        k,
+    ) + velocity_term_atomic_oxygen(grid)
     n_grid["O"] = O_7 * (T7 / t) * np.exp(-cumulative_trapezoid(y, grid, initial=0.0))
 
     # *************************************************************************
@@ -661,19 +658,16 @@ def compute_number_densities_high_altitude(
         a=A["O2"],
         b=B["O2"],
     )
-    y = (
-        thermal_diffusion_term(
-            species="O2",
-            grid=grid,
-            g=g,
-            t=t,
-            dt_dz=dt_dz,
-            m=m,
-            d=d,
-            k=k,
-        )
-        + velocity_term("O2", grid)
-    )
+    y = thermal_diffusion_term(
+        species="O2",
+        grid=grid,
+        g=g,
+        t=t,
+        dt_dz=dt_dz,
+        m=m,
+        d=d,
+        k=k,
+    ) + velocity_term("O2", grid)
     n_grid["O2"] = O2_7 * (T7 / t) * np.exp(-cumulative_trapezoid(y, grid, initial=0.0))
 
     # *************************************************************************
@@ -689,19 +683,16 @@ def compute_number_densities_high_altitude(
         a=A["Ar"],
         b=B["Ar"],
     )
-    y = (
-        thermal_diffusion_term(
-            species="Ar",
-            grid=grid,
-            g=g,
-            t=t,
-            dt_dz=dt_dz,
-            m=m,
-            d=d,
-            k=k,
-        )
-        + velocity_term("Ar", grid)
-    )
+    y = thermal_diffusion_term(
+        species="Ar",
+        grid=grid,
+        g=g,
+        t=t,
+        dt_dz=dt_dz,
+        m=m,
+        d=d,
+        k=k,
+    ) + velocity_term("Ar", grid)
     n_grid["Ar"] = AR_7 * (T7 / t) * np.exp(-cumulative_trapezoid(y, grid, initial=0.0))
 
     # *************************************************************************
@@ -717,19 +708,16 @@ def compute_number_densities_high_altitude(
         a=A["He"],
         b=B["He"],
     )
-    y = (
-        thermal_diffusion_term(
-            species="He",
-            grid=grid,
-            g=g,
-            t=t,
-            dt_dz=dt_dz,
-            m=m,
-            d=d,
-            k=k,
-        )
-        + velocity_term("He", grid)
-    )
+    y = thermal_diffusion_term(
+        species="He",
+        grid=grid,
+        g=g,
+        t=t,
+        dt_dz=dt_dz,
+        m=m,
+        d=d,
+        k=k,
+    ) + velocity_term("He", grid)
     n_grid["He"] = HE_7 * (T7 / t) * np.exp(-cumulative_trapezoid(y, grid, initial=0.0))
 
     # *************************************************************************
