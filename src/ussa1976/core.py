@@ -146,14 +146,14 @@ UNITS = {
     "kt": "W/(m*K)",
     "z": "m",
     "h": "m",
-    "species": "",
+    "s": "",
 }
 
 # Variables dimensions
 DIMS = {
     "t": "z",
     "p": "z",
-    "n": ("species", "z"),
+    "n": ("s", "z"),
     "n_tot": "z",
     "rho": "z",
     "mv": "z",
@@ -371,7 +371,7 @@ def compute_high_altitude(
 
     n = compute_number_densities_high_altitude(z)
     species = ["N2", "O", "O2", "Ar", "He", "H"]
-    ni: npt.NDArray[np.float64] = np.array([n.sel(species=s).values for s in species])
+    ni: npt.NDArray[np.float64] = np.array([n.sel(s=s).values for s in species])
     n_tot = np.sum(ni, axis=0)
     fi = ni / n_tot[np.newaxis, :]
     mi: npt.NDArray[np.float64] = np.array([M[s] for s in species])
@@ -388,7 +388,7 @@ def compute_high_altitude(
 
     for i, s in enumerate(SPECIES):
         if s in species:
-            ds["n"][i].loc[dict(z=z)] = n.sel(species=s).values
+            ds["n"][i].loc[dict(z=z)] = n.sel(s=s).values
 
     ds["rho"].loc[dict(z=z)] = rho
     ds["mv"].loc[dict(z=z)] = NA / n_tot
@@ -448,7 +448,7 @@ def init_data_set(z: npt.NDArray[np.float64]) -> xr.Dataset:  # type: ignore
                 "units": "m",
             },
         ),
-        "species": ("species", SPECIES),
+        "s": ("s", SPECIES),
     }
 
     # TODO: set function name in history field dynamically
@@ -697,9 +697,9 @@ def compute_number_densities_high_altitude(
 
     return xr.DataArray(
         n_concat,
-        dims=["species", "z"],
+        dims=["s", "z"],
         coords={
-            "species": ("species", [s for s in n]),
+            "s": ("s", [s for s in n]),
             "z": ("z", altitudes, dict(units="m")),
         },
         attrs=dict(units="m^-3"),
