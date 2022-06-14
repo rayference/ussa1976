@@ -78,8 +78,9 @@ You can install *USSA1976* via pip_ from PyPI_:
 Usage
 -----
 
-Please see the `Command-line Reference <Usage_>`_ for details.
-
+* For the Command-line interface, please see the
+  `Command-line Reference <Usage_>`_ for details.
+* For the Python interface, refer to the `User Guide <_User Guide>`_.
 
 Contributing
 ------------
@@ -117,3 +118,4 @@ This project was generated from `@cjolowicz`_'s `Hypermodern Python Cookiecutter
 .. github-only
 .. _Contributor Guide: CONTRIBUTING.rst
 .. _Usage: https://ussa1976.readthedocs.io/en/latest/usage.html
+.. _User Guide: https://ussa1976.readthedocs.io/en/latest/user_guide.html
