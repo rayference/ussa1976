@@ -24,7 +24,7 @@ import xarray as xr
 from scipy.integrate import cumulative_trapezoid
 from scipy.interpolate import interp1d
 
-from . import __version__
+from ._version import _version
 from .constants import A
 from .constants import ALPHA
 from .constants import AR_7
@@ -444,9 +444,9 @@ def init_data_set(z: npt.NDArray[np.float64]) -> xr.Dataset:  # type: ignore
         "title": "U.S. Standard Atmosphere 1976",
         "history": (
             f"{datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')}"
-            f" - data set creation - ussa1976, version {__version__}"
+            f" - data set creation - ussa1976, version {_version}"
         ),
-        "source": f"ussa1976, version {__version__}",
+        "source": f"ussa1976, version {_version}",
         "references": (
             "U.S. Standard Atmosphere, 1976, NASA-TM-X-74335" "NOAA-S/T-76-1562"
         ),
