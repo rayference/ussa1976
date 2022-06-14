@@ -517,22 +517,29 @@ def init_data_set(z: npt.NDArray[np.float64]) -> xr.Dataset:  # type: ignore
             )
 
     coords = {
-        "z": ("z", z, dict(units="m")),
+        "z": (
+            "z",
+            z,
+            {
+                "standard_name": "altitude",
+                "long_name": "altitude",
+                "units": "m",
+            },
+        ),
         "species": ("species", SPECIES),
     }
 
     # TODO: set function name in history field dynamically
     attrs = {
-        "convention": "CF-1.8",
+        "convention": "CF-1.9",
         "title": "U.S. Standard Atmosphere 1976",
         "history": (
             f"{datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')}"
-            f" - data set creation - ussa1976.core.create, version {__version__}"
+            f" - data set creation - ussa1976, version {__version__}"
         ),
         "source": f"ussa1976, version {__version__}",
         "references": (
-            "U.S. Standard Atmosphere, 1976, NASA-TM-X-74335",
-            "NOAA-S/T-76-1562",
+            "U.S. Standard Atmosphere, 1976, NASA-TM-X-74335" "NOAA-S/T-76-1562"
         ),
     }
 
@@ -631,14 +638,17 @@ def compute_number_densities_high_altitude(
         a=A["O"],
         b=B["O"],
     )
-    y = thermal_diffusion_term_atomic_oxygen(
-        grid,
-        g,
-        t,
-        dt_dz,
-        d,
-        k,
-    ) + velocity_term_atomic_oxygen(grid)
+    y = (
+        thermal_diffusion_term_atomic_oxygen(
+            grid,
+            g,
+            t,
+            dt_dz,
+            d,
+            k,
+        )
+        + velocity_term_atomic_oxygen(grid)
+    )
     n_grid["O"] = O_7 * (T7 / t) * np.exp(-cumulative_trapezoid(y, grid, initial=0.0))
 
     # *************************************************************************
@@ -651,16 +661,19 @@ def compute_number_densities_high_altitude(
         a=A["O2"],
         b=B["O2"],
     )
-    y = thermal_diffusion_term(
-        species="O2",
-        grid=grid,
-        g=g,
-        t=t,
-        dt_dz=dt_dz,
-        m=m,
-        d=d,
-        k=k,
-    ) + velocity_term("O2", grid)
+    y = (
+        thermal_diffusion_term(
+            species="O2",
+            grid=grid,
+            g=g,
+            t=t,
+            dt_dz=dt_dz,
+            m=m,
+            d=d,
+            k=k,
+        )
+        + velocity_term("O2", grid)
+    )
     n_grid["O2"] = O2_7 * (T7 / t) * np.exp(-cumulative_trapezoid(y, grid, initial=0.0))
 
     # *************************************************************************
@@ -676,16 +689,19 @@ def compute_number_densities_high_altitude(
         a=A["Ar"],
         b=B["Ar"],
     )
-    y = thermal_diffusion_term(
-        species="Ar",
-        grid=grid,
-        g=g,
-        t=t,
-        dt_dz=dt_dz,
-        m=m,
-        d=d,
-        k=k,
-    ) + velocity_term("Ar", grid)
+    y = (
+        thermal_diffusion_term(
+            species="Ar",
+            grid=grid,
+            g=g,
+            t=t,
+            dt_dz=dt_dz,
+            m=m,
+            d=d,
+            k=k,
+        )
+        + velocity_term("Ar", grid)
+    )
     n_grid["Ar"] = AR_7 * (T7 / t) * np.exp(-cumulative_trapezoid(y, grid, initial=0.0))
 
     # *************************************************************************
@@ -701,16 +717,19 @@ def compute_number_densities_high_altitude(
         a=A["He"],
         b=B["He"],
     )
-    y = thermal_diffusion_term(
-        species="He",
-        grid=grid,
-        g=g,
-        t=t,
-        dt_dz=dt_dz,
-        m=m,
-        d=d,
-        k=k,
-    ) + velocity_term("He", grid)
+    y = (
+        thermal_diffusion_term(
+            species="He",
+            grid=grid,
+            g=g,
+            t=t,
+            dt_dz=dt_dz,
+            m=m,
+            d=d,
+            k=k,
+        )
+        + velocity_term("He", grid)
+    )
     n_grid["He"] = HE_7 * (T7 / t) * np.exp(-cumulative_trapezoid(y, grid, initial=0.0))
 
     # *************************************************************************
@@ -1046,10 +1065,10 @@ def f_above_115_km(
     dt_dz: array
         Temperature gradient at the different altitudes [K/m].
 
-    mi: array
+    mi: float
         Species molar masses [kg/mole].
 
-    alpha: array
+    alpha: float
         Alpha thermal diffusion constant [dimensionless].
 
     Returns
@@ -1057,7 +1076,7 @@ def f_above_115_km(
     array
         Function :math:`f` at the different altitudes.
     """
-    return (g / (R * t)) * (mi + ((alpha * R) / g) * dt_dz)
+    return (g / (R * t)) * (mi + ((alpha * R) / g) * dt_dz)  # type: ignore
 
 
 def thermal_diffusion_term(
