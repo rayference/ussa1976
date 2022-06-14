@@ -42,10 +42,10 @@ def test_create(test_altitudes: npt.NDArray[np.float64]) -> None:
 
     assert len(ds.dims) == 2
     assert "z" in ds.dims
-    assert "species" in ds.dims
+    assert "s" in ds.dims
     assert len(ds.coords) == 2
     assert np.all(ds.z.values == test_altitudes)
-    assert list(ds.species.values) == SPECIES
+    assert list(ds.s.values) == SPECIES
     assert all([var in ds for var in variables])
     assert all(
         [
@@ -229,7 +229,7 @@ def test_init_data_set(z_bounds: t.Tuple[float, float]) -> None:
             assert np.isnan(ds[var].values).all()
 
         assert ds.n.values.ndim == 2
-        assert list(ds.species.values) == SPECIES
+        assert list(ds.s.values) == SPECIES
 
     z_start, z_stop = z_bounds
     z = np.linspace(z_start, z_stop)
@@ -413,13 +413,13 @@ def test_compute_number_density() -> None:
 
     n = compute_number_densities_high_altitude(altitudes=altitudes)
 
-    assert np.allclose(n.sel(species="N2"), values["N2"], rtol=0.01)
+    assert np.allclose(n.sel(s="N2"), values["N2"], rtol=0.01)
     # TODO: investigate the poor relative tolerance that is achieved here
-    assert np.allclose(n.sel(species="O"), values["O"], rtol=0.1)
-    assert np.allclose(n.sel(species="O2"), values["O2"], rtol=0.01)
-    assert np.allclose(n.sel(species="Ar"), values["Ar"], rtol=0.01)
-    assert np.allclose(n.sel(species="He"), values["He"], rtol=0.01)
-    assert np.allclose(n.sel(species="H")[mask], values["H"][mask], rtol=0.01)
+    assert np.allclose(n.sel(s="O"), values["O"], rtol=0.1)
+    assert np.allclose(n.sel(s="O2"), values["O2"], rtol=0.01)
+    assert np.allclose(n.sel(s="Ar"), values["Ar"], rtol=0.01)
+    assert np.allclose(n.sel(s="He"), values["He"], rtol=0.01)
+    assert np.allclose(n.sel(s="H")[mask], values["H"][mask], rtol=0.01)
 
 
 def test_compute_mean_molar_mass() -> None:
