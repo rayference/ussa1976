@@ -855,7 +855,7 @@ def thermal_diffusion_coefficient(
 
     Returns
     -------
-    quantity
+    array
         Thermal diffusion coefficient [m^2 / s].
     """
     k = (a / background) * np.power(temperature / 273.15, b)
