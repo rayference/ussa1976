@@ -812,7 +812,7 @@ def compute_temperature_gradient_high_altitude(
         Returns
         -------
         float
-            Temperature gradient [K/m].
+            Temperature gradient [K / m].
         """
         if Z7 <= z_value <= Z8:
             return LK7
@@ -869,7 +869,7 @@ def thermal_diffusion_coefficient(
     Returns
     -------
     array
-        Thermal diffusion coefficient [m^2 / s].
+        Thermal diffusion coefficient [m^2 * s^-1].
     """
     k = (a / background) * np.power(temperature / 273.15, b)
     return np.array(k, dtype=np.float64)
@@ -886,7 +886,7 @@ def eddy_diffusion_coefficient(z: npt.NDArray[np.float64]) -> npt.NDArray[np.flo
     Returns
     -------
     array
-        Eddy diffusion coefficient [m^2/s].
+        Eddy diffusion coefficient [m^2 * s^-1].
 
     Notes
     -----
@@ -918,28 +918,30 @@ def f_below_115_km(
     Parameters
     ----------
     g: array
-        Gravity values at the different altitudes [m/s^2].
+        Gravity values at the different altitudes [m * s^-2].
 
     t: array
         Temperature values at the different altitudes [K].
 
     dt_dz: array
-        Temperature gradient values at the different altitudes [K/m].
+        Temperature gradient values at the different altitudes [K * m^-1].
 
     m: array
-        Molar mass [kg/mole].
+        Molar mass [kg * mole^-1].
 
     mi: array
-        Species molar masses [kg/mole].
+        Species molar masses [kg * mole^-1].
 
     alpha: array
         Alpha thermal diffusion constant [dimensionless].
 
     d: array
-        Thermal diffusion coefficient values at the different altitudes.
+        Thermal diffusion coefficient values at the different altitudes
+        [m^2 * s^-1].
 
     k: array
-        Eddy diffusion coefficient values at the different altitudes.
+        Eddy diffusion coefficient values at the different altitudes
+        [m^2 * s^-1].
 
     Returns
     -------
@@ -967,16 +969,16 @@ def f_above_115_km(
     Parameters
     ----------
     g: array
-        Gravity at the different altitudes [m/s^2].
+        Gravity at the different altitudes [m * s^-2].
 
     t: array
         Temperature at the different altitudes [K].
 
     dt_dz: array
-        Temperature gradient at the different altitudes [K/m].
+        Temperature gradient at the different altitudes [K * m^-1].
 
     mi: float
-        Species molar masses [kg/mole].
+        Species molar masses [kg * mole^-1].
 
     alpha: float
         Alpha thermal diffusion constant [dimensionless].
@@ -1010,29 +1012,29 @@ def thermal_diffusion_term(
         Altitude grid [m].
 
     g: array
-        Gravity values on the altitude grid [m / s^2].
+        Gravity values on the altitude grid [m * s^-2].
 
     t: array
         Temperature values on the altitude grid [K].
 
     dt_dz: array
-        Temperature gradient values on the altitude grid [K/m].
+        Temperature gradient values on the altitude grid [K * m^-1].
 
     m: array
-        Values of the mean molar mass on the altitude grid [kg/mole].
+        Values of the mean molar mass on the altitude grid [kg * mole^-1].
 
     d: array
         Molecular diffusion coefficient values on the altitude grid,
-        for altitudes strictly less than 115 km [m^2 / s].
+        for altitudes strictly less than 115 km [m^2 * s^-1].
 
     k: array
         Eddy diffusion coefficient values on the altitude grid, for
-        altitudes strictly less than 115 km.
+        altitudes strictly less than 115 km [m^2 * s^-1].
 
     Returns
     -------
     array
-        Thermal diffusion term [m^-2].
+        Thermal diffusion term [m^-1].
     """
     below_115_km = grid < 115e3
     fo1 = f_below_115_km(
@@ -1072,24 +1074,24 @@ def thermal_diffusion_term_atomic_oxygen(
         Altitude grid [m].
 
     g: array
-        Gravity values on the altitude grid [m/s^2].
+        Gravity values on the altitude grid [m * s^-2].
 
     t: array
         Temperature values on the altitude grid [K].
 
     dt_dz: array
-        Temperature values gradient on the altitude grid [K/m].
+        Temperature values gradient on the altitude grid [K * m^-1].
 
     d: array
-        Thermal diffusion coefficient on the altitude grid [].
+        Thermal diffusion coefficient on the altitude grid [m^2 * s^-1].
 
     k: array
-        Eddy diffusion coefficient values on the altitude grid [].
+        Eddy diffusion coefficient values on the altitude grid [m^2 * s^-1].
 
     Returns
     -------
     array
-        Thermal diffusion term [].
+        Thermal diffusion term [-1].
     """
     mask1, mask2 = grid < 115e3, grid >= 115e3
     x1 = f_below_115_km(
@@ -1284,7 +1286,8 @@ def tau_function(
     Parameters
     ----------
     z_grid: array
-        Altitude grid (values sorted by ascending order) to use for integration [m].
+        Altitude grid (values sorted by ascending order) to use for integration
+        [m].
 
     below_500: bool, default True
         ``True`` if altitudes in ``z_grid`` are lower than 500 km, False
@@ -1454,7 +1457,7 @@ def compute_pressure_low_altitude_non_zero_gradient(
         Temperature at the bottom of the layer [K].
 
     lkb: float
-        Temperature gradient in the layer [K/m].
+        Temperature gradient in the layer [K * m^-1].
 
     Returns
     -------
@@ -1544,6 +1547,6 @@ def compute_gravity(z: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
     Returns
     -------
     array
-        Gravity [m/s^2].
+        Gravity [m * s^-2].
     """
     return np.array(G0 * np.power((R0 / (R0 + z)), 2.0), dtype=np.float64)
