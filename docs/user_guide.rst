@@ -50,7 +50,7 @@ linearly spaced altitude mesh, specified in the table below.
 Inspect the output data set
 ---------------------------
 
-You can easily access the values of the different computed variables for 
+You can easily access the values of the different computed variables for
 further manipulation.
 
 For example, pressure values can be accessed with:
@@ -69,7 +69,7 @@ Plot a variable
 
 .. note::
 
-   The `matplotlib library <https://matplotlib.org/>`_ must be installed for 
+   The `matplotlib library <https://matplotlib.org/>`_ must be installed for
    plotting.
 
 Plotting variables is made very convenient with xarray.
@@ -119,7 +119,7 @@ Atmosphere 1976 model.
 You can select only the variables that are relevant for your application using
 the ``variables`` parameters.
 
-For example, to compute only the air temperature (``t``), air pressure (``p``), 
+For example, to compute only the air temperature (``t``), air pressure (``p``),
 air number density (``n_tot``) and the species number density (``n``), use:
 
 .. code-block:: python
