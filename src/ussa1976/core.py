@@ -128,6 +128,26 @@ STANDARD_NAME = {
     "h": "geopotential_height",
 }
 
+# Variables long names
+LONG_NAME = {
+    "t": "air temperature",
+    "p": "air pressure",
+    "n": "number_density",
+    "n_tot": "air number density",
+    "rho": "air density",
+    "mv": "air molar volume",
+    "hp": "air pressure scale height",
+    "v": "mean air particles speed",
+    "mfp": "air particles mean free path",
+    "f": "air particles mean collision frequency",
+    "cs": "speed of sound in air",
+    "mu": "air dynamic viscosity",
+    "nu": "air kinematic viscosity",
+    "kt": "air thermal conductivity coefficient",
+    "z": "altitude",
+    "h": "geopotential height",
+}
+
 # Units of relevant quantities
 UNITS = {
     "t": "K",
@@ -429,13 +449,21 @@ def init_data_set(z: npt.NDArray[np.float64]) -> xr.Dataset:  # type: ignore
             data_vars[var] = (
                 DIMS[var],
                 np.full(z.shape, np.nan),
-                dict(units=UNITS[var], standard_name=STANDARD_NAME[var]),
+                {
+                    "units": UNITS[var],
+                    "long_name": LONG_NAME[var],
+                    "standard_name": STANDARD_NAME[var],
+                },
             )
         else:
             data_vars[var] = (
                 DIMS[var],
                 np.full((len(SPECIES), len(z)), np.nan),
-                dict(units=UNITS[var], standard_name=STANDARD_NAME["n"]),
+                {
+                    "units": UNITS[var],
+                    "long_name": LONG_NAME[var],
+                    "standard_name": STANDARD_NAME["n"],
+                },
             )
 
     coords = {
@@ -448,7 +476,7 @@ def init_data_set(z: npt.NDArray[np.float64]) -> xr.Dataset:  # type: ignore
                 "units": "m",
             },
         ),
-        "s": ("s", SPECIES),
+        "s": ("s", SPECIES, {"long_name": "species", "standard_name": "species"}),
     }
 
     # TODO: set function name in history field dynamically
