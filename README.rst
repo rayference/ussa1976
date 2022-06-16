@@ -1,6 +1,8 @@
 USSA1976
 ========
 
+*The U.S. Standard Atmosphere 1976 model.*
+
 |PyPI| |Python Version| |License|
 
 |Read the Docs| |Tests| |Codecov|
@@ -32,7 +34,9 @@ USSA1976
    :target: https://github.com/psf/black
    :alt: Black
 
-The U.S. Standard Atmosphere 1976 model.
+This package implements the atmosphere thermophysical model provided by the
+National Aeronautics and Space Administration technical report NASA-TM-X-74335
+published in 1976 and entitled *U.S. Standard Atmosphere, 1976*.
 
 Features
 --------
