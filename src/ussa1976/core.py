@@ -435,7 +435,7 @@ def init_data_set(z: npt.NDArray[np.float64]) -> xr.Dataset:  # type: ignore
 
     Parameters
     ----------
-    z: quantity
+    z: array
         Altitudes [m].
 
     Returns
@@ -479,7 +479,6 @@ def init_data_set(z: npt.NDArray[np.float64]) -> xr.Dataset:  # type: ignore
         "s": ("s", SPECIES, {"long_name": "species", "standard_name": "species"}),
     }
 
-    # TODO: set function name in history field dynamically
     attrs = {
         "convention": "CF-1.9",
         "title": "U.S. Standard Atmosphere 1976",
@@ -564,7 +563,7 @@ def compute_number_densities_high_altitude(
     # pre-computed variables
     m = compute_mean_molar_mass_high_altitude(z=grid)
     g = compute_gravity(z=grid)
-    t = compute_temperature_high_altitude(altitude=grid)
+    t = compute_temperature_high_altitude(z=grid)
     dt_dz = compute_temperature_gradient_high_altitude(z=grid)
     below_115 = grid < 115e3
     k = eddy_diffusion_coefficient(grid[below_115])
@@ -583,8 +582,8 @@ def compute_number_densities_high_altitude(
     # *************************************************************************
 
     d = thermal_diffusion_coefficient(
-        background=n_grid["N2"][below_115],
-        temperature=t[below_115],
+        nb=n_grid["N2"][below_115],
+        t=t[below_115],
         a=A["O"],
         b=B["O"],
     )
@@ -603,14 +602,14 @@ def compute_number_densities_high_altitude(
     # *************************************************************************
 
     d = thermal_diffusion_coefficient(
-        background=n_grid["N2"][below_115],
-        temperature=t[below_115],
+        nb=n_grid["N2"][below_115],
+        t=t[below_115],
         a=A["O2"],
         b=B["O2"],
     )
     y = thermal_diffusion_term(
-        species="O2",
-        grid=grid,
+        s="O2",
+        z_grid=grid,
         g=g,
         t=t,
         dt_dz=dt_dz,
@@ -628,14 +627,14 @@ def compute_number_densities_high_altitude(
         n_grid["N2"][below_115] + n_grid["O"][below_115] + n_grid["O2"][below_115]
     )
     d = thermal_diffusion_coefficient(
-        background=background,
-        temperature=t[below_115],
+        nb=background,
+        t=t[below_115],
         a=A["Ar"],
         b=B["Ar"],
     )
     y = thermal_diffusion_term(
-        species="Ar",
-        grid=grid,
+        s="Ar",
+        z_grid=grid,
         g=g,
         t=t,
         dt_dz=dt_dz,
@@ -653,14 +652,14 @@ def compute_number_densities_high_altitude(
         n_grid["N2"][below_115] + n_grid["O"][below_115] + n_grid["O2"][below_115]
     )
     d = thermal_diffusion_coefficient(
-        background=background,
-        temperature=t[below_115],
+        nb=background,
+        t=t[below_115],
         a=A["He"],
         b=B["He"],
     )
     y = thermal_diffusion_term(
-        species="He",
-        grid=grid,
+        s="He",
+        z_grid=grid,
         g=g,
         t=t,
         dt_dz=dt_dz,
@@ -753,13 +752,13 @@ def compute_mean_molar_mass_high_altitude(
 
 
 def compute_temperature_high_altitude(
-    altitude: npt.NDArray[np.float64],
+    z: npt.NDArray[np.float64],
 ) -> npt.NDArray[np.float64]:
     """Compute temperature in high-altitude region.
 
     Parameters
     ----------
-    altitude: array
+    z: array
         Altitude [m].
 
     Returns
@@ -800,9 +799,9 @@ def compute_temperature_high_altitude(
                 np.exp(-LAMBDA * (z - Z10) * (R0 + Z10) / (R0 + z))
             )
         else:
-            raise ValueError("altitude value is out of range")
+            raise ValueError(f"altitude value '{z}' is out of range")
 
-    temperature = np.vectorize(t)(altitude)
+    temperature = np.vectorize(t)(z)
     return np.array(temperature, dtype=np.float64)
 
 
@@ -873,8 +872,8 @@ def compute_temperature_gradient_high_altitude(
 
 
 def thermal_diffusion_coefficient(
-    background: npt.NDArray[np.float64],
-    temperature: npt.NDArray[np.float64],
+    nb: npt.NDArray[np.float64],
+    t: npt.NDArray[np.float64],
     a: float,
     b: float,
 ) -> npt.NDArray[np.float64]:
@@ -882,10 +881,10 @@ def thermal_diffusion_coefficient(
 
     Parameters
     ----------
-    background: array
+    nb: array
         Background number density [m^-3].
 
-    temperature: array
+    t: array
         Temperature [K].
 
     a: float
@@ -899,7 +898,7 @@ def thermal_diffusion_coefficient(
     array
         Thermal diffusion coefficient [m^2 * s^-1].
     """
-    k = (a / background) * np.power(temperature / 273.15, b)
+    k = (a / nb) * np.power(t / 273.15, b)
     return np.array(k, dtype=np.float64)
 
 
@@ -940,8 +939,8 @@ def f_below_115_km(
     r"""Evaluate function :math:`f` below 115 km altitude.
 
     Evaluates the function :math:`f` defined by equation (36) in
-    :cite:`NASA1976USStandardAtmosphere` in the altitude region :math:`86
-    \leq z \leq 115` km.
+    :cite:`NASA1976USStandardAtmosphere` in the altitude region :math:`86` km
+    :math:`\leq z \leq 115` km.
 
     Parameters
     ----------
@@ -957,10 +956,10 @@ def f_below_115_km(
     m: array
         Molar mass [kg * mole^-1].
 
-    mi: array
+    mi: float
         Species molar masses [kg * mole^-1].
 
-    alpha: array
+    alpha: float
         Alpha thermal diffusion constant [dimensionless].
 
     d: array
@@ -991,8 +990,8 @@ def f_above_115_km(
     r"""Evaluate function :math:`f` above 115 km altitude.
 
     Evaluate the function :math:`f` defined by equation (36) in
-    :cite:`NASA1976USStandardAtmosphere` in the altitude region :math:`115 \lt
-    z \leq 1000` km.
+    :cite:`NASA1976USStandardAtmosphere` in the altitude region :math:`115`
+    :math:`\lt z \leq 1000` km.
 
     Parameters
     ----------
@@ -1020,8 +1019,8 @@ def f_above_115_km(
 
 
 def thermal_diffusion_term(
-    species: str,
-    grid: npt.NDArray[np.float64],
+    s: str,
+    z_grid: npt.NDArray[np.float64],
     g: npt.NDArray[np.float64],
     t: npt.NDArray[np.float64],
     dt_dz: npt.NDArray[np.float64],
@@ -1033,10 +1032,10 @@ def thermal_diffusion_term(
 
     Parameters
     ----------
-    species: str
+    s: str
         Species.
 
-    grid: array
+    z_grid: array
         Altitude grid [m].
 
     g: array
@@ -1064,30 +1063,30 @@ def thermal_diffusion_term(
     array
         Thermal diffusion term [m^-1].
     """
-    below_115_km = grid < 115e3
+    below_115_km = z_grid < 115e3
     fo1 = f_below_115_km(
         g[below_115_km],
         t[below_115_km],
         dt_dz[below_115_km],
         m[below_115_km],
-        M[species],
-        ALPHA[species],
+        M[s],
+        ALPHA[s],
         d,
         k,
     )
-    above_115_km = grid >= 115e3
+    above_115_km = z_grid >= 115e3
     fo2 = f_above_115_km(
         g[above_115_km],
         t[above_115_km],
         dt_dz[above_115_km],
-        M[species],
-        ALPHA[species],
+        M[s],
+        ALPHA[s],
     )
     return np.concatenate((fo1, fo2))
 
 
 def thermal_diffusion_term_atomic_oxygen(
-    grid: npt.NDArray[np.float64],
+    z_grid: npt.NDArray[np.float64],
     g: npt.NDArray[np.float64],
     t: npt.NDArray[np.float64],
     dt_dz: npt.NDArray[np.float64],
@@ -1098,7 +1097,7 @@ def thermal_diffusion_term_atomic_oxygen(
 
     Parameters
     ----------
-    grid: array
+    z_grid: array
         Altitude grid [m].
 
     g: array
@@ -1121,7 +1120,7 @@ def thermal_diffusion_term_atomic_oxygen(
     array
         Thermal diffusion term [-1].
     """
-    mask1, mask2 = grid < 115e3, grid >= 115e3
+    mask1, mask2 = z_grid < 115e3, z_grid >= 115e3
     x1 = f_below_115_km(
         g=g[mask1],
         t=t[mask1],
@@ -1223,23 +1222,21 @@ def velocity_term_no_hump(
 
     Notes
     -----
-    Valid in the altitude region :math:`86 \leq z \leq 150` km.
+    Valid in the altitude region :math:`86` km :math:`\leq z \leq 150` km.
     """
     t = q1 * np.square(z - u1) * np.exp(-w1 * np.power(z - u1, 3.0))  # m^-1
     return np.array(t, np.float64)
 
 
-def velocity_term(
-    species: str, grid: npt.NDArray[np.float64]
-) -> npt.NDArray[np.float64]:
+def velocity_term(s: str, z_grid: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
     """Compute velocity term of a given species in high-altitude region.
 
     Parameters
     ----------
-    species: str
+    s: str
         Species.
 
-    grid: array
+    z_grid: array
         Altitude grid [m].
 
     Returns
@@ -1252,15 +1249,15 @@ def velocity_term(
     Not valid for atomic oxygen. See :func:`velocity_term_atomic_oxygen`.
     """
     x1 = velocity_term_no_hump(
-        z=grid[grid <= 150e3],
-        q1=Q1[species],
-        u1=U1[species],
-        w1=W1[species],
+        z=z_grid[z_grid <= 150e3],
+        q1=Q1[s],
+        u1=U1[s],
+        w1=W1[s],
     )
 
     # Above 150 km, the velocity term is neglected, as indicated at p. 14 in
     # :cite:`NASA1976USStandardAtmosphere`
-    x2 = np.zeros(len(grid[grid > 150e3]))
+    x2 = np.zeros(len(z_grid[z_grid > 150e3]))
     return np.concatenate((x1, x2))
 
 
@@ -1328,7 +1325,7 @@ def tau_function(
 
     Notes
     -----
-    Valid for 150 km :math:`leq z \leq` 500 km.
+    Valid for 150 km :math:`\leq z \leq` 500 km.
     """
     if below_500:
         z_grid = z_grid[::-1]
@@ -1336,7 +1333,7 @@ def tau_function(
     y = (
         M["H"]
         * compute_gravity(z=z_grid)
-        / (R * compute_temperature_high_altitude(altitude=z_grid))
+        / (R * compute_temperature_high_altitude(z=z_grid))
     )  # m^-1
     integral_values: npt.NDArray[np.float64] = np.array(
         cumulative_trapezoid(y, z_grid, initial=0.0), dtype=np.float64
