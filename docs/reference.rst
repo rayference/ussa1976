@@ -1,6 +1,12 @@
 Reference
 =========
 
+``constants``
+-------------
+
+.. automodule:: ussa1976.constants
+   :members:
+
 ``core``
 --------
 
