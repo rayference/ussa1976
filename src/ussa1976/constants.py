@@ -3,68 +3,67 @@
 As much as possible, constants' names are chosen to be as close as possible to
 the notations used in :cite:`NASA1976USStandardAtmosphere`.
 
+Notes
+-----
 Constants' values are evaluated in the following set of units:
-
-    * length: meter
-    * time: second
-    * mass: kilogram
-    * temperature: kelvin
-    * quantity of matter: mole
+* length: meter
+* time: second
+* mass: kilogram
+* temperature: kelvin
+* quantity of matter: mole
 
 Note the following derived units:
-
-    * 1 Pa = 1 kg * m^-1 * s^-2
-    * 1 Joule = 1 kg * m^2 * s^-2
+* 1 Pa = 1 kg * m^-1 * s^-2
+* 1 Joule = 1 kg * m^2 * s^-2
 """
 import numpy as np
 import numpy.typing as npt
 
-# Boltzmann constant
-K = 1.380622e-23  # J * K^-1
+K = 1.380622e-23
+"""Boltzmann constant [J * K^-1]."""
 
-# Molar masses of the individual species
 M = {
-    "N2": 0.0280134,  # kg * mole^-1
-    "O2": 0.0319988,  # kg * mole^-1
-    "Ar": 0.039948,  # kg * mole^-1
-    "CO2": 0.04400995,  # kg * mole^-1
-    "Ne": 0.020183,  # kg * mole^-1
-    "He": 0.0040026,  # kg * mole^-1
-    "Kr": 0.08380,  # kg * mole^-1
-    "Xe": 0.13130,  # kg * mole^-1
-    "CH4": 0.01604303,  # kg * mole^-1
-    "H2": 0.00201594,  # kg * mole^-1
-    "O": 0.01599939,  # kg * mole^-1
-    "H": 0.00100797,  # kg * mole^-1
+    "N2": 0.0280134,
+    "O2": 0.0319988,
+    "Ar": 0.039948,
+    "CO2": 0.04400995,
+    "Ne": 0.020183,
+    "He": 0.0040026,
+    "Kr": 0.08380,
+    "Xe": 0.13130,
+    "CH4": 0.01604303,
+    "H2": 0.00201594,
+    "O": 0.01599939,
+    "H": 0.00100797,
 }
+"""Molar masses of the individual species [kg * mole^-1]."""
 
-# Sea level mean (mixture) molar mass
-M0 = 0.028964425278793997  # kg * mole^-1
+M0 = 0.028964425278793997
+"""Sea level mean air molar mass [kg * mole^-1]."""
 
-# Avogadro number
-NA = 6.022169e23  # mole^-1
+NA = 6.022169e23
+"""Avogadro number [mole^-1]."""
 
-# Universal gas constant
-R = 8.31432  # J * K^-1 * mole^-1
+R = 8.31432
+"""Universal gas constant [J * K^-1 * mole^-1]."""
 
-# Sea level volume fractions of the gas species present below 86 km
 F = {
-    "N2": 0.78084,  # dimensionless
-    "O2": 0.209476,  # dimensionless
-    "Ar": 0.00934,  # dimensionless
-    "CO2": 0.000314,  # dimensionless
-    "Ne": 0.00001818,  # dimensionless
-    "He": 0.00000524,  # dimensionless
-    "Kr": 0.00000114,  # dimensionless
-    "Xe": 0.000000087,  # dimensionless
-    "CH4": 0.000002,  # dimensionless
-    "H2": 0.0000005,  # dimensionless
+    "N2": 0.78084,
+    "O2": 0.209476,
+    "Ar": 0.00934,
+    "CO2": 0.000314,
+    "Ne": 0.00001818,
+    "He": 0.00000524,
+    "Kr": 0.00000114,
+    "Xe": 0.000000087,
+    "CH4": 0.000002,
+    "H2": 0.0000005,
 }
+"""Sea level volume fractions below 86 km [dimensionless]."""
 
-# Sea level gravity
-G0 = 9.80665  # m / s^-2
+G0 = 9.80665
+"""Sea level gravity [m / s^-2]."""
 
-# Geopotential altitudes of the layers' boundaries (below 86 km)
 H: npt.NDArray[np.float64] = np.array(
     [
         0.0,
@@ -75,10 +74,10 @@ H: npt.NDArray[np.float64] = np.array(
         51e3,
         71e3,
         84852.05,
-    ]  # m
+    ]
 )
+"""Geopotential altitudes of the layers' boundaries (below 86 km) [m]."""
 
-# Temperature gradients in the seven layers (below 86 km)
 LK: npt.NDArray[np.float64] = np.array(
     [
         -0.0065,
@@ -88,120 +87,167 @@ LK: npt.NDArray[np.float64] = np.array(
         0.0,
         -0.0028,
         -0.0020,
-    ]  # K * m^-1
+    ]
 )
+"""Temperature gradients in the seven layers (below 86 km) [K * m^-1]."""
 
-# Pressure at sea level
-P0 = 101325.0  # Pa
+P0 = 101325.0
+"""Pressure at sea level [Pa]."""
 
-# Effective Earth radius
-R0 = 6.356766e6  # m
+R0 = 6.356766e6
+"""Effective Earth radius [m]."""
 
-# Temperature at sea level
-T0 = 288.15  # K
-S = 110.4  # K
-BETA = 1.458e6  # kg * m^-1 * s^-1 * K^-0.5
-GAMMA = 1.40  # dimensionless
-SIGMA = 3.65e-10  # m
+T0 = 288.15
+"""Temperature at sea level [K]."""
 
-# Thermal diffusion constants of the individual species present above 86 km
+S = 110.4
+"""Sutherland constant in eq. 51 of :cite:`NASA1976USStandardAtmosphere` [K]."""
+
+BETA = 1.458e6
+""":math:`\\beta` constant in eq. 51 of :cite:`NASA1976USStandardAtmosphere`
+[kg * m^-1 * s^-1 * K^-0.5]."""
+
+GAMMA = 1.40
+"""Ratio of specific heat of air at constant pressure to the specific heat of
+air at constant volume [dimensionless]."""
+
+SIGMA = 3.65e-10
+"""Mean effective collision diameter [m]."""
+
 ALPHA = {
-    "N2": 0.0,  # dimensionless
-    "O": 0.0,  # dimensionless
-    "O2": 0.0,  # dimensionless
-    "Ar": 0.0,  # dimensionless
-    "He": -0.4,  # dimensionless
-    "H": -0.25,  # dimensionless
+    "N2": 0.0,
+    "O": 0.0,
+    "O2": 0.0,
+    "Ar": 0.0,
+    "He": -0.4,
+    "H": -0.25,
 }
+"""Thermal diffusion constants above 86 km [dimensionless]."""
+
 A = {
-    # "N2": None,
-    "O": 6.986e20,  # m * s^-1
-    "O2": 4.863e20,  # m * s^-1
-    "Ar": 4.487e20,  # m * s^-1
-    "He": 1.7e21,  # m * s^-1
-    "H": 3.305e21,  # m * s^-1
+    "O": 6.986e20,
+    "O2": 4.863e20,
+    "Ar": 4.487e20,
+    "He": 1.7e21,
+    "H": 3.305e21,
 }
+"""Thermal diffusion coefficients [m * s^-1]."""
 B = {
-    # "N2": None,
-    "O": 0.75,  # dimensionless
-    "O2": 0.75,  # dimensionless
-    "Ar": 0.87,  # dimensionless
-    "He": 0.691,  # dimensionless
-    "H": 0.5,  # dimensionless
+    "O": 0.75,
+    "O2": 0.75,
+    "Ar": 0.87,
+    "He": 0.691,
+    "H": 0.5,
 }
+"""Thermal diffusion constants [dimensionless]."""
 
-# Eddy diffusion coefficients
-K_7 = 1.2e2  # m^2 * s^-1
+K_7 = 1.2e2
+"""Eddy diffusion coefficients [m^2 * s^-1]."""
 
-# Vertical transport constants of the individual species present above 86 km
 Q1 = {
-    "O": -5.809644e-13,  # m^-3
-    "O2": 1.366212e-13,  # m^-3
-    "Ar": 9.434079e-14,  # m^-3
-    "He": -2.457369e-13,  # m^-3
+    "O": -5.809644e-13,
+    "O2": 1.366212e-13,
+    "Ar": 9.434079e-14,
+    "He": -2.457369e-13,
 }
+"""Vertical transport constants above 86 km [m^-3]."""
+
 Q2 = {
-    "O": -3.416248e-12,  # m^-3  # warning: above 97 km, Q2 = 0 m^-3.
-    "O2": 0.0,  # m^-3
-    "Ar": 0.0,  # m^-3
-    "He": 0.0,  # m^-3
+    "O": -3.416248e-12,  # warning: above 97 km, Q2 = 0 m^-3.
+    "O2": 0.0,
+    "Ar": 0.0,
+    "He": 0.0,
 }
+"""Vertical transport constants above 86 km [m^-3]."""
+
 U1 = {
-    "O": 56.90311e3,  # m
-    "O2": 86e3,  # m
-    "Ar": 86e3,  # m
-    "He": 86e3,  # m
+    "O": 56.90311e3,
+    "O2": 86e3,
+    "Ar": 86e3,
+    "He": 86e3,
 }
-U2 = {"O": 97e3}  # "O2": None, "Ar": None, "He": None}  # m
+"""Vertical transport constants above 86 km [m]."""
+
+U2 = {
+    "O": 97e3,
+}
+"""Vertical transport constants above 86 km [m]."""
+
 W1 = {
-    "O": 2.706240e-14,  # m^-3
-    "O2": 8.333333e-14,  # m^-3
-    "Ar": 8.333333e-14,  # m^-3
-    "He": 6.666667e-13,  # m^-3
+    "O": 2.706240e-14,
+    "O2": 8.333333e-14,
+    "Ar": 8.333333e-14,
+    "He": 6.666667e-13,
 }
+"""Vertical transport constants above 86 km [m^-3]."""
+
 W2 = {
-    "O": 5.008765e-13,  # m^-3
-    #    "O2": None,
-    #    "Ar": None,
-    #    "He": None,
+    "O": 5.008765e-13,
 }
+"""Vertical transport constants above 86 km [m^-3]."""
 
-# Altitudes of the levels delimiting 5 layers above 86 km
-Z7 = 86e3  # m
-Z8 = 91e3  # m
-Z9 = 110e3  # m
-Z10 = 120e3  # m
-Z12 = 1000e3  # m
+Z7 = 86e3
+"""Top altitude of the 7th layer [m]."""
 
-# Temperature at the different levels above 86 km
-T7 = 186.8673  # K
-T9 = 240.0  # K
-T10 = 360.0  # K
-T11 = 999.2356  # K
-TINF = 1000.0  # K
-LAMBDA = 0.01875e-3  # m^-1
+Z8 = 91e3
+"""Top altitude of the 8th layer [m]."""
 
-# Temperature gradients
-LK7 = 0.0  # K * m^-1
-LK9 = 12.0e-3  # K * m^-1
+Z9 = 110e3
+"""Top altitude of the 9th layer [m]."""
 
-# Molecular nitrogen at altitude = Z7
-N2_7 = 1.129794e20  # m^-3
+Z10 = 120e3
+"""Top altitude of the 10th layer [m]."""
 
-# Atomic oxygen at altitude = Z7
-O_7 = 8.6e16  # m^-3
+Z12 = 1000e3
+"""Top altitude of the 12nd layer [m]."""
 
-# Molecular oxygen at altitude = Z7
-O2_7 = 3.030898e19  # m^-3
+T7 = 186.8673
+"""Temperature at altitude :const:`.Z7` [K]."""
 
-# Argon at altitude = Z7
-AR_7 = 1.351400e18  # m^-3
+T9 = 240.0
+"""Temperature at altitude :const:`.Z9` [K]."""
 
-# Helium at altitude = Z7 (assumes typo at page 13)
-HE_7 = 7.5817e14  # m^-3
+T10 = 360.0
+"""Temperature at altitude :const:`.Z10` [K]."""
 
-# Hydrogen at altitude = Z7
-H_11 = 8.0e10  # m^-3
+T11 = 999.2356
+"""Temperature at altitude :const:`.Z11` [K]."""
 
-# Vertical flux
-PHI = 7.2e11  # m^2 * s^-1
+TINF = 1000.0
+"""Exospheric temperature [K]."""
+
+LAMBDA = 0.01875e-3
+""":math:`\\lambda` constant in eq. 32 of :cite:`NASA1976USStandardAtmosphere`
+[m^-1]."""
+
+LK7 = 0.0
+"""Temperature gradient in the 8th layer [K * m^-1]."""
+
+LK9 = 12.0e-3
+"""Temperature gradient in the 10th layer [K * m^-1]."""
+
+N2_7 = 1.129794e20
+"""Molecular nitrogen number density at altitude :const:`.Z7` [m^-3]."""
+
+O_7 = 8.6e16
+"""Atomic oxygen number density at altitude :const:`.Z7` [m^-3]."""
+
+O2_7 = 3.030898e19
+"""Molecular oxygen number density at altitude :const:`.Z7` [m^-3]."""
+
+AR_7 = 1.351400e18
+"""Argon number density at altitude :const:`.Z7` [m^-3]."""
+
+HE_7 = 7.5817e14
+"""Helium number density at altitude :const:`.Z7` [m^-3].
+
+Notes
+-----
+Assumes typo at page 13.
+"""
+
+H_11 = 8.0e10
+"""Hydrogen number density at altitude :const:`.Z7` [m^-3]."""
+
+PHI = 7.2e11
+"""Vertical air particles flux [m^2 * s^-1]."""
