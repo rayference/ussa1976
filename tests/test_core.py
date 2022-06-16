@@ -443,7 +443,7 @@ def test_compute_temperature_above_86_km() -> None:
         [90e3, 100e3, 110e3, 120e3, 130e3, 200e3, 500e3]
     )
     assert np.allclose(
-        compute_temperature_high_altitude(altitude=z),
+        compute_temperature_high_altitude(z=z),
         np.array([186.87, 195.08, 240.00, 360.0, 469.27, 854.56, 999.24]),
         rtol=1e-3,
     )
@@ -452,7 +452,7 @@ def test_compute_temperature_above_86_km() -> None:
 def test_compute_temperature_above_86_km_invalid_altitudes() -> None:
     """Raises when altitude is out of range."""
     with pytest.raises(ValueError):
-        compute_temperature_high_altitude(altitude=np.array([10e3]))  # 10 km < 86 km
+        compute_temperature_high_altitude(z=np.array([10e3]))  # 10 km < 86 km
 
 
 def test_compute_high_altitude_no_mask() -> None:
