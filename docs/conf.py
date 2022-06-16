@@ -18,7 +18,6 @@ html_theme = "furo"
 intersphinx_mapping = {
     "numpy": ("https://numpy.org/doc/stable/", None),
     "scipy": ("http://docs.scipy.org/doc/scipy/reference/", None),
-    "pint": ("https://pint.readthedocs.io/en/stable/", None),
     "xarray": ("http://xarray.pydata.org/en/stable/", None),
 }
 
@@ -28,5 +27,4 @@ napoleon_type_aliases = {
     "array": "~numpy.ndarray",
     "DataArray": "~xarray.DataArray",
     "Dataset": "~xarray.Dataset",
-    "quantity": ":class:`quantity <pint.Quantity>`",
 }
