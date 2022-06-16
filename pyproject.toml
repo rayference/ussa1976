@@ -4,7 +4,7 @@ classifiers = [
   "Programming Language :: Python :: 3.8",
   "Programming Language :: Python :: 3.9",
 ]
-description = "Ussa1976"
+description = "The U.S. Standard Atmosphere 1976 model."
 documentation = "https://ussa1976.readthedocs.io"
 homepage = "https://github.com/nollety/ussa1976"
 license = "MIT"
