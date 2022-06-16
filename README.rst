@@ -41,18 +41,18 @@ Features
 * Compute all 14 atmospheric variables of the model as a function of altitude:
    * air temperature
    * air pressure
-   * species number density
+   * number density (of individual species)
    * air number density
    * air density
-   * molar volume
+   * air molar volume
    * air pressure scale height
-   * mean air particle speed
-   * mean free path
-   * mean collision frequency
+   * air particles mean speed
+   * air particles mean free path
+   * air particles mean collision frequency
    * speed of sound in air
    * air dynamic viscosity
    * air kinematic viscosity
-   * air coefficient of thermal conductivity
+   * air thermal conductivity coefficient
 * Results stored in `NetCDF <https://www.unidata.ucar.edu/software/netcdf/>`_
   format
 * Command-line interface

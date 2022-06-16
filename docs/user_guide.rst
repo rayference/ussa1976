@@ -146,11 +146,11 @@ The table below indicates what symbol is used for each variable.
    * - ``rho``
      - air density
    * - ``mv``
-     - molar volume
+     - air molar volume
    * - ``hp``
-     - pressure scale height
+     - air pressure scale height
    * - ``v``
-     - mean air particles speed
+     - air particles mean speed
    * - ``mfp``
      - air particles mean free path
    * - ``f``
