@@ -267,7 +267,7 @@ def compute(
 
 def compute_low_altitude(
     data_set: xr.Dataset,
-    mask: t.Optional[npt.NDArray[bool]] = None,
+    mask: t.Optional[npt.NDArray[bool]] = None,  # type: ignore
     inplace: bool = False,
 ) -> t.Optional[xr.Dataset]:
     """Compute U.S. Standard Atmosphere 1976 in low-altitude region.
