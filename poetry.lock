@@ -184,14 +184,14 @@ files = [
 
 [[package]]
 name = "bandit"
-version = "1.7.2"
+version = "1.7.4"
 description = "Security oriented static analyser for python code."
 category = "dev"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "bandit-1.7.2-py3-none-any.whl", hash = "sha256:e20402cadfd126d85b68ed4c8862959663c8c372dbbb1fca8f8e2c9f55a067ec"},
-    {file = "bandit-1.7.2.tar.gz", hash = "sha256:6d11adea0214a43813887bfe71a377b5a9955e4c826c8ffd341b494e3ab25260"},
+    {file = "bandit-1.7.4-py3-none-any.whl", hash = "sha256:412d3f259dab4077d0e7f0c11f50f650cc7d10db905d98f6520a95a18049658a"},
+    {file = "bandit-1.7.4.tar.gz", hash = "sha256:2d63a8c573417bae338962d4b9b06fbc6080f74ecd955a092849e1e65c717bd2"},
 ]
 
 [package.dependencies]
@@ -835,20 +835,19 @@ pyflakes = ">=2.5.0,<2.6.0"
 
 [[package]]
 name = "flake8-bandit"
-version = "2.1.2"
+version = "4.1.1"
 description = "Automated security testing with bandit and flake8."
 category = "dev"
 optional = false
-python-versions = "*"
+python-versions = ">=3.6"
 files = [
-    {file = "flake8_bandit-2.1.2.tar.gz", hash = "sha256:687fc8da2e4a239b206af2e54a90093572a60d0954f3054e23690739b0b0de3b"},
+    {file = "flake8_bandit-4.1.1-py3-none-any.whl", hash = "sha256:4c8a53eb48f23d4ef1e59293657181a3c989d0077c9952717e98a0eace43e06d"},
+    {file = "flake8_bandit-4.1.1.tar.gz", hash = "sha256:068e09287189cbfd7f986e92605adea2067630b75380c6b5733dab7d87f9a84e"},
 ]
 
 [package.dependencies]
-bandit = "*"
-flake8 = "*"
-flake8-polyfill = "*"
-pycodestyle = "*"
+bandit = ">=1.7.3"
+flake8 = ">=5.0.0"
 
 [[package]]
 name = "flake8-bugbear"
@@ -884,21 +883,6 @@ files = [
 [package.dependencies]
 flake8 = ">=3"
 pydocstyle = ">=2.1"
-
-[[package]]
-name = "flake8-polyfill"
-version = "1.0.2"
-description = "Polyfill package for Flake8 plugins"
-category = "dev"
-optional = false
-python-versions = "*"
-files = [
-    {file = "flake8-polyfill-1.0.2.tar.gz", hash = "sha256:e44b087597f6da52ec6393a709e7108b2905317d0c0b744cdca6208e670d8eda"},
-    {file = "flake8_polyfill-1.0.2-py2.py3-none-any.whl", hash = "sha256:12be6a34ee3ab795b19ca73505e7b55826d5f6ad7230d31b18e106400169b9e9"},
-]
-
-[package.dependencies]
-flake8 = "*"
 
 [[package]]
 name = "flake8-rst-docstrings"
@@ -3692,4 +3676,4 @@ testing = ["flake8 (<5)", "func-timeout", "jaraco.functools", "jaraco.itertools"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.8,<3.10"
-content-hash = "0b9a153093df433c3b1515267643472c931b271de961178c3bc36349910eeeb0"
+content-hash = "613d873c75fc3ce00e21feb21b94039b801ca09ad6bea3d7705297aa91f2a4f8"
