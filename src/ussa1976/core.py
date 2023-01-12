@@ -267,7 +267,7 @@ def compute(
 
 def compute_low_altitude(
     data_set: xr.Dataset,
-    mask: t.Optional[npt.NDArray[np.bool8]] = None,
+    mask: t.Optional[npt.NDArray[bool]] = None,
     inplace: bool = False,
 ) -> t.Optional[xr.Dataset]:
     """Compute U.S. Standard Atmosphere 1976 in low-altitude region.
@@ -353,7 +353,7 @@ def compute_low_altitude(
 
 def compute_high_altitude(
     data_set: xr.Dataset,
-    mask: t.Optional[npt.NDArray[np.bool8]] = None,
+    mask: t.Optional[npt.NDArray[bool]] = None,
     inplace: bool = False,
 ) -> t.Optional[xr.Dataset]:
     """Compute U.S. Standard Atmosphere 1976 in high-altitude region.
