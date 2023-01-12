@@ -495,9 +495,9 @@ def init_data_set(z: npt.NDArray[np.float64]) -> xr.Dataset:  # type: ignore
     return xr.Dataset(data_vars, coords, attrs)  # type: ignore
 
 
-def compute_levels_temperature_and_pressure_low_altitude() -> t.Tuple[
-    npt.NDArray[np.float64], npt.NDArray[np.float64]
-]:
+def compute_levels_temperature_and_pressure_low_altitude() -> (
+    t.Tuple[npt.NDArray[np.float64], npt.NDArray[np.float64]]
+):
     """Compute temperature and pressure at low-altitude region' levels.
 
     Returns
