@@ -12,7 +12,7 @@ license = "MIT"
 name = "ussa1976"
 readme = "README.rst"
 repository = "https://github.com/nollety/ussa1976"
-version = "0.3.3"
+version = "0.3.4"
 
 [tool.poetry.urls]
 Changelog = "https://github.com/nollety/ussa1976/releases"
