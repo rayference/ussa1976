@@ -1,11 +1,12 @@
 USSA1976
 ========
 
-> [!WARNING]
-> This project is unmaintained starting from July 29th 2025. Its features are
-> however entirely transferred to the [Joseki](https://github.com/rayference/joseki)
-> library. See [this pull request](https://github.com/rayference/joseki/pull/372)
-> for more information.
+**WARNING**
+
+This project is unmaintained starting from July 29th 2025. Its features are
+however entirely transferred to the `Joseki <https://github.com/rayference/joseki>`_
+library. See `this pull request <https://github.com/rayference/joseki/pull/372>`_
+for more information.
 
 *The U.S. Standard Atmosphere 1976 model.*
 
